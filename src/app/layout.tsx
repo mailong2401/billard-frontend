@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
+'use client';
+
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
-import Header from '@/components/layout/Header';
+import Sidebar from '@/components/layout/Sidebar';
+import { SocketProvider } from '@/contexts/SocketContext';
 
 const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'Billiard Management System',
-  description: 'Quản lý bàn bi da chuyên nghiệp',
-};
 
 export default function RootLayout({
   children,
@@ -17,15 +14,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
-        <div className="min-h-screen bg-gray-50">
-          <Header />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
-          </main>
-        </div>
-        <Toaster />
+        <SocketProvider>
+          <div className="min-h-screen bg-gray-50 dark:bg-macchiato-mantle transition-colors duration-300">
+            <Sidebar />
+            <main className="transition-all duration-300 min-h-screen">
+              <div className="pl-0 md:pl-20 lg:pl-64">
+                <div className="p-4 md:p-8">
+                  {children}
+                </div>
+              </div>
+            </main>
+          </div>
+          <Toaster position="top-right" />
+        </SocketProvider>
       </body>
     </html>
   );

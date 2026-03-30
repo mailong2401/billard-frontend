@@ -13,17 +13,15 @@ export default function Home() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isClient, setIsClient] = useState(false); // ✅ Thêm state
+  const [isClient, setIsClient] = useState(false);
   
   const isMounted = useRef(true);
   const initialized = useRef(false);
 
-  // ✅ Đánh dấu đã mount ở client
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // ✅ CHỈ LOAD DATA SAU KHI ĐÃ MOUNT Ở CLIENT
   useEffect(() => {
     isMounted.current = true;
 
@@ -54,13 +52,11 @@ export default function Home() {
     };
   }, [isClient, socket, isConnected]);
 
-  // 🔥 LẮNG NGHE REALTIME EVENTS
   useEffect(() => {
     if (!socket || !isClient) return;
 
     console.log('🏠 Home: Setting up realtime listeners');
 
-    // TABLE EVENTS
     const handleTableCreated = (table: Table) => {
       console.log('📊 Home: Table created realtime', table);
       setTables((prev) => [...prev, table]);
@@ -78,7 +74,6 @@ export default function Home() {
       setTables((prev) => prev.filter((t) => t.id !== id));
     };
 
-    // BOOKING EVENTS
     const handleNewBooking = (booking: Booking) => {
       console.log('📊 Home: New booking realtime', booking);
       
@@ -196,13 +191,12 @@ export default function Home() {
     .filter(b => b.status === 'completed')
     .reduce((sum, b) => sum + b.total_amount, 0);
 
-  // ✅ Hiển thị loading cho đến khi client mount xong
   if (!isClient) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-macchiato-subtext">Đang tải...</p>
         </div>
       </div>
     );
@@ -212,8 +206,8 @@ export default function Home() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang kết nối đến server...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối đến server...</p>
         </div>
       </div>
     );
@@ -224,28 +218,32 @@ export default function Home() {
       title: 'Tổng số bàn',
       value: totalTables,
       icon: BiTable,
-      color: 'bg-blue-500',
+      color: 'bg-blue-500 dark:bg-blue-600',
+      textColor: 'text-blue-600 dark:text-blue-400',
       link: '/tables'
     },
     {
       title: 'Bàn trống',
       value: availableTables,
       icon: BiTable,
-      color: 'bg-green-500',
+      color: 'bg-green-500 dark:bg-green-600',
+      textColor: 'text-green-600 dark:text-green-400',
       link: '/tables'
     },
     {
       title: 'Đặt bàn hôm nay',
       value: todayBookings,
       icon: BiCalendar,
-      color: 'bg-purple-500',
+      color: 'bg-purple-500 dark:bg-purple-600',
+      textColor: 'text-purple-600 dark:text-purple-400',
       link: '/bookings'
     },
     {
       title: 'Doanh thu hôm nay',
       value: formatCurrency(todayRevenue),
       icon: BiDollar,
-      color: 'bg-yellow-500',
+      color: 'bg-yellow-500 dark:bg-yellow-600',
+      textColor: 'text-yellow-600 dark:text-yellow-400',
       link: '/bookings'
     },
   ];
@@ -253,20 +251,21 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Tổng quan về hệ thống quản lý bàn bi da</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-macchiato-text">Dashboard</h1>
+        <p className="text-gray-600 dark:text-macchiato-subtext mt-1">Tổng quan về hệ thống quản lý bàn bi da</p>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
           <Link href={stat.link} key={index}>
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  <p className="text-sm text-gray-600 dark:text-macchiato-subtext">{stat.title}</p>
+                  <p className={`text-2xl font-bold mt-1 ${stat.textColor}`}>{stat.value}</p>
                 </div>
-                <div className={`${stat.color} p-3 rounded-full`}>
+                <div className={`${stat.color} p-3 rounded-full group-hover:scale-110 transition-transform`}>
                   <stat.icon className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -276,67 +275,94 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Truy cập nhanh</h2>
+        {/* Quick Access */}
+        <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text mb-4">Truy cập nhanh</h2>
           <div className="space-y-3">
             <Link
               href="/tables"
-              className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors group"
             >
-              <BiTable className="h-6 w-6 text-blue-600" />
+              <BiTable className="h-6 w-6 text-blue-600 dark:text-macchiato-blue" />
               <div>
-                <p className="font-medium text-gray-900">Quản lý bàn</p>
-                <p className="text-sm text-gray-600">Xem và quản lý danh sách bàn</p>
+                <p className="font-medium text-gray-900 dark:text-macchiato-text">Quản lý bàn</p>
+                <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Xem và quản lý danh sách bàn</p>
               </div>
             </Link>
             <Link
               href="/bookings"
-              className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group"
             >
-              <BiCalendar className="h-6 w-6 text-green-600" />
+              <BiCalendar className="h-6 w-6 text-green-600 dark:text-macchiato-green" />
               <div>
-                <p className="font-medium text-gray-900">Quản lý đặt bàn</p>
-                <p className="text-sm text-gray-600">Xem và xử lý đặt bàn</p>
+                <p className="font-medium text-gray-900 dark:text-macchiato-text">Quản lý đặt bàn</p>
+                <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Xem và xử lý đặt bàn</p>
               </div>
             </Link>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Đặt bàn gần đây</h2>
+        {/* Recent Bookings */}
+        <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text mb-4">Đặt bàn gần đây</h2>
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 dark:border-macchiato-blue"></div>
             </div>
           ) : recentBookings.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Chưa có đặt bàn nào hôm nay</p>
+            <div className="flex flex-col items-center justify-center py-8">
+              <BiCalendar className="h-12 w-12 text-gray-300 dark:text-macchiato-subtext mb-3" />
+              <p className="text-gray-500 dark:text-macchiato-subtext text-center">Chưa có đặt bàn nào hôm nay</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {recentBookings.map((booking) => (
-                <Link href={`/bookings`} key={booking.id}>
-                  <div className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <BiUser className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium text-gray-900">{booking.customer_name}</p>
-                        <p className="text-sm text-gray-500">
-                          {booking.table_name || `Bàn #${booking.table_id}`} - {formatDateTime(booking.start_time)}
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {recentBookings.map((booking) => {
+                const getStatusColor = () => {
+                  switch (booking.status) {
+                    case 'completed': return 'text-green-600 dark:text-green-400';
+                    case 'checked_in': return 'text-blue-600 dark:text-blue-400';
+                    case 'confirmed': return 'text-yellow-600 dark:text-yellow-400';
+                    case 'cancelled': return 'text-red-600 dark:text-red-400';
+                    default: return 'text-gray-600 dark:text-gray-400';
+                  }
+                };
+
+                const getStatusText = () => {
+                  switch (booking.status) {
+                    case 'completed': return 'Hoàn thành';
+                    case 'checked_in': return 'Đang chơi';
+                    case 'confirmed': return 'Đã đặt';
+                    case 'cancelled': return 'Đã hủy';
+                    default: return booking.status;
+                  }
+                };
+
+                return (
+                  <Link href={`/bookings`} key={booking.id}>
+                    <div className="flex items-center justify-between p-3 border border-gray-100 dark:border-macchiato-surface rounded-lg hover:bg-gray-50 dark:hover:bg-macchiato-mantle transition-colors cursor-pointer">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-gray-100 dark:bg-macchiato-surface p-2 rounded-full">
+                          <BiUser className="h-4 w-4 text-gray-500 dark:text-macchiato-subtext" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-macchiato-text">{booking.customer_name}</p>
+                          <p className="text-sm text-gray-500 dark:text-macchiato-subtext">
+                            {booking.table_name || `Bàn #${booking.table_id}`} - {formatDateTime(booking.start_time)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-green-600 dark:text-macchiato-green">
+                          {formatCurrency(booking.total_amount)}
+                        </p>
+                        <p className={`text-xs ${getStatusColor()}`}>
+                          {getStatusText()}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-green-600">
-                        {formatCurrency(booking.total_amount)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {booking.status === 'completed' ? 'Hoàn thành' : 
-                         booking.status === 'checked_in' ? 'Đang chơi' : 
-                         booking.status === 'confirmed' ? 'Đã đặt' : 'Đã hủy'}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

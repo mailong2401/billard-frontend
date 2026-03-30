@@ -149,8 +149,8 @@ export default function BookingsPage() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang kết nối đến server...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối đến server...</p>
         </div>
       </div>
     );
@@ -159,17 +159,19 @@ export default function BookingsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Quản lý đặt bàn</h1>
-        <p className="text-gray-600 mt-1">Xem và xử lý các đơn đặt bàn</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-macchiato-text">Quản lý đặt bàn</h1>
+        <p className="text-gray-600 dark:text-macchiato-subtext mt-1">Xem và xử lý các đơn đặt bàn</p>
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Chọn ngày</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-2">
+          Chọn ngày
+        </label>
         <input
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors cursor-pointer"
         />
       </div>
 
