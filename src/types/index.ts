@@ -16,6 +16,20 @@ export interface Table {
   updated_at: string;
 }
 
+export interface BookingItem {
+  id: number;
+  booking_id: number;
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+  status: 'pending' | 'preparing' | 'served' | 'cancelled';
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Booking {
   id: number;
   booking_code: string;
@@ -29,6 +43,8 @@ export interface Booking {
   duration_hours: number;
   total_amount: number;
   status: BookingStatus;
+  table_type?: string;
+  items?: BookingItem[];
   notes: string | null;
   created_at: string;
   updated_at: string;

@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 interface Booking {
   id: number;
   booking_code: string;
+  table_id: number;           // ← Thêm dòng này
   table_name: string;
   start_time: string;
   end_time: string;
@@ -119,7 +120,7 @@ export default function ClientProfile() {
         </p>
 
         {/* Customer Info */}
-          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
             <BiUser className="mr-2" /> Thông tin cá nhân
           </h2>
@@ -153,29 +154,26 @@ export default function ClientProfile() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-  
-  <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
-    <p className="text-2xl font-bold text-black dark:text-white">
-      {bookings.length}
-    </p>
-    <p className="text-sm text-gray-600 dark:text-gray-400">
-      Tổng đặt bàn
-    </p>
-  </div>
-
-  <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
-    <p className="text-2xl font-bold text-black dark:text-white">
-      {formatCurrency(totalSpent)}
-    </p>
-    <p className="text-sm text-gray-600 dark:text-gray-400">
-      Tổng chi tiêu
-    </p>
-  </div>
-
-</div>
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-black dark:text-white">
+              {bookings.length}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Tổng đặt bàn
+            </p>
+          </div>
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-black dark:text-white">
+              {formatCurrency(totalSpent)}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Tổng chi tiêu
+            </p>
+          </div>
+        </div>
 
         {/* Booking History */}
-          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
             <BiHistory className="mr-2" /> Lịch sử đặt bàn
           </h2>

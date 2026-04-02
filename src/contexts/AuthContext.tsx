@@ -9,6 +9,7 @@ interface User {
   username: string;
   email: string;
   full_name: string;
+  phone: string;        // ← Thêm dòng này
   role: 'admin' | 'client';
   is_active: boolean;
 }
@@ -61,10 +62,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isLoading && user) {
       const isAdminRoute = pathname?.startsWith('/admin');
       const isClientRoute = pathname?.startsWith('/client');
+      const isAuthRoute = pathname?.startsWith('/auth');
       
-      if (user.role === 'admin' && !isAdminRoute && pathname !== '/login') {
+      if (isAuthRoute) {
+        if (user.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/client');
+        }
+      } else if (user.role === 'admin' && !isAdminRoute) {
         router.push('/admin');
-      } else if (user.role === 'client' && !isClientRoute && pathname !== '/login') {
+      } else if (user.role === 'client' && !isClientRoute) {
         router.push('/client');
       }
     }
@@ -106,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    router.push('/login');
+    router.push('/auth/login');
   };
 
   const register = async (data: RegisterData) => {
