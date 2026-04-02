@@ -11,17 +11,26 @@ import OrderPanel from '@/components/admin/tables/OrderPanel';
 import { Table, CreateTableData, UpdateTableData } from '@/types';
 import { BiPlus } from 'react-icons/bi';
 
-const getVietnamTime = (): string => {
-  const now = new Date();
-  const vietnamOffset = 7 * 60 * 60 * 1000;
-  const vietnamTime = new Date(now.getTime() + vietnamOffset);
-  return vietnamTime.toISOString().slice(0, 19).replace('T', ' ');
+// Helper: Chuyển đổi string datetime sang Date object
+const parseDateTime = (dateStr: string): Date => {
+  if (!dateStr) return new Date();
+  // Hỗ trợ format "YYYY-MM-DD HH:mm:ss"
+  const [datePart, timePart] = dateStr.split(' ');
+  if (!timePart) return new Date(dateStr);
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes, seconds] = timePart.split(':').map(Number);
+  return new Date(year, month - 1, day, hours, minutes, seconds);
 };
 
-const getVietnamDate = (): Date => {
+const getVietnamTime = (): string => {
   const now = new Date();
-  const vietnamOffset = 7 * 60 * 60 * 1000;
-  return new Date(now.getTime() + vietnamOffset);
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
 const toNumber = (value: any): number => {
@@ -65,17 +74,16 @@ export default function TablesPage() {
         const bookingsMap = new Map<number, any>();
 
         res.data.forEach((table: any) => {
-          if (table.booking_id) {
-            const startTime = new Date(table.start_time);
+          if (table.booking_id && table.start_time) {
+            // Parse start_time từ string (đã ở múi giờ VN)
+            const startTime = parseDateTime(table.start_time);
             const now = new Date();
+            
+            // Tính số giờ đã chơi (chênh lệch milliseconds)
+            const diffMs = now.getTime() - startTime.getTime();
+            const hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
 
-            const hoursPlayed = Math.max(
-              0,
-              (now.getTime() - startTime.getTime()) / (1000 * 60 * 60)
-            );
-
-            const currentAmount =
-              Math.ceil(hoursPlayed) * table.price_per_hour;
+            const currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
 
             bookingsMap.set(table.id, {
               id: table.booking_id,
@@ -85,8 +93,7 @@ export default function TablesPage() {
               customer_name: table.customer_name,
               customer_phone: table.customer_phone,
               food_total: toNumber(table.food_total || 0),
-              total_amount:
-                currentAmount + toNumber(table.food_total || 0),
+              total_amount: currentAmount + toNumber(table.food_total || 0),
             });
           }
         });
@@ -133,23 +140,20 @@ export default function TablesPage() {
           const table = tables.find(t => t.id === tableId);
           if (!table) return;
 
-          const startTime = new Date(booking.start_time);
+          // Parse start_time từ string (đã ở múi giờ VN)
+          const startTime = parseDateTime(booking.start_time);
           const now = new Date();
 
-          const hoursPlayed = Math.max(
-            0,
-            (now.getTime() - startTime.getTime()) / (1000 * 60 * 60)
-          );
+          const diffMs = now.getTime() - startTime.getTime();
+          const hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
 
-          const currentAmount =
-            Math.ceil(hoursPlayed) * table.price_per_hour;
+          const currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
 
           newMap.set(tableId, {
             ...booking,
             current_amount: currentAmount,
             hours_played: hoursPlayed,
-            total_amount:
-              currentAmount + (booking.food_total || 0),
+            total_amount: currentAmount + (booking.food_total || 0),
           });
         });
 
@@ -200,8 +204,10 @@ export default function TablesPage() {
 
   const handlePlayDirect = useCallback((table: Table, customerName: string, customerPhone: string) => {
     const startTime = getVietnamTime();
-    const vietnamDate = getVietnamDate();
-    const endTime = new Date(vietnamDate.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+    // Tính end_time = start_time + 2 giờ
+    const startDate = parseDateTime(startTime);
+    const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+    const endTime = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')} ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:${String(endDate.getSeconds()).padStart(2, '0')}`;
     
     const bookingData = {
       table_id: table.id,
@@ -316,48 +322,48 @@ export default function TablesPage() {
   }, [socket, loadTables]);
 
   // ================= UI =================
-if (!isClient) {
-  return (
-    <div className="flex justify-center items-center h-64">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+  if (!isClient) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-if (!isConnected) {
-  return (
-    <div className="flex justify-center items-center h-64">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Đang kết nối đến server...</p>
+  if (!isConnected) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang kết nối đến server...</p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-  <div>
-    <h1 className="text-3xl font-bold text-black dark:text-white">
-      Quản lý bàn
-    </h1>
-    <p className="text-gray-600 dark:text-gray-400 mt-1">
-      Quản lý bàn bi da và theo dõi thời gian chơi
-    </p>
-  </div>
+        <div>
+          <h1 className="text-3xl font-bold text-black dark:text-white">
+            Quản lý bàn
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Quản lý bàn bi da và theo dõi thời gian chơi
+          </p>
+        </div>
 
-  <button
-    onClick={() => setIsCreateModalOpen(true)}
-    className="flex items-center gap-2 px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded-lg border border-gray-300 dark:border-gray-600 hover:opacity-80 transition"
-  >
-    <BiPlus size={20} />
-    <span>Thêm bàn</span>
-  </button>
-</div>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded-lg border border-gray-300 dark:border-gray-600 hover:opacity-80 transition"
+        >
+          <BiPlus size={20} />
+          <span>Thêm bàn</span>
+        </button>
+      </div>
 
       <TableList
         tables={tables}
