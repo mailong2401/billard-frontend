@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Table } from '@/types';
 import TableCard from './TableCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -28,7 +28,7 @@ interface TableListProps {
   }>;
 }
 
-export default function TableList({ 
+const TableList = memo(function TableList({ 
   tables, 
   loading, 
   onEdit, 
@@ -149,7 +149,7 @@ export default function TableList({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTables.map((table) => (
               <TableCard
-                key={table.id}
+                key={`${table.id}-${table.status}-${activeBookings.get(table.id)?.id || 'no-booking'}`}
                 table={table}
                 onEdit={onEdit}
                 onDelete={onDelete}
@@ -166,4 +166,6 @@ export default function TableList({
       )}
     </div>
   );
-}
+});
+
+export default TableList;

@@ -16,10 +16,10 @@ import {
 import ThemeToggle from './ThemeToggle';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: BiHome },
-  { name: 'Bàn Bi Da', href: '/tables', icon: BiTable },
-  { name: 'Đặt Bàn', href: '/bookings', icon: BiCalendar },
-  { name: 'Sản phẩm', href: '/products', icon: BiFoodMenu },
+  { name: 'Dashboard', href: '/admin', icon: BiHome },
+  { name: 'Bàn Bi Da', href: '/admin/tables', icon: BiTable },
+  { name: 'Đặt Bàn', href: '/admin/bookings', icon: BiCalendar },
+  { name: 'Sản phẩm', href: '/admin/products', icon: BiFoodMenu },
 ];
 
 export default function Sidebar() {

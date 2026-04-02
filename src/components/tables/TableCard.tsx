@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Table } from '@/types';
 import { TABLE_STATUS, TABLE_TYPE } from '@/utils/constants';
 import { formatCurrency } from '@/utils/formatters';
@@ -27,7 +27,20 @@ interface TableCardProps {
   } | null;
 }
 
-export default function TableCard({ 
+// Hàm format thời gian chi tiết
+const formatDuration = (hours: number): string => {
+  const totalSeconds = Math.floor(hours * 3600);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  
+  if (h > 0) {
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
+const TableCard = memo(function TableCard({ 
   table, 
   onEdit, 
   onDelete, 
@@ -45,21 +58,39 @@ export default function TableCard({
   const [showPlayDirectModal, setShowPlayDirectModal] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [localFoodTotal, setLocalFoodTotal] = useState(activeBooking?.food_total || 0);
+  const [durationText, setDurationText] = useState('00:00');
 
+  // Update local state when activeBooking changes
   useEffect(() => {
-    if (table.status === 'occupied' && activeBooking) {
+    if (activeBooking) {
+      setCurrentAmount(activeBooking.current_amount || 0);
+      setHoursPlayed(activeBooking.hours_played || 0);
+      setLocalFoodTotal(activeBooking.food_total || 0);
+    }
+  }, [activeBooking]);
+
+  // Real-time timer for occupied tables - cập nhật mỗi giây
+  useEffect(() => {
+    if (table.status === 'occupied' && activeBooking?.start_time) {
       const interval = setInterval(() => {
         const start = new Date(activeBooking.start_time);
         const now = new Date();
-        const hours = (now.getTime() - start.getTime()) / (1000 * 60 * 60);
-        const amount = Math.ceil(hours * table.price_per_hour);
-        setHoursPlayed(parseFloat(hours.toFixed(2)));
+        const hours = Math.max(0, (now.getTime() - start.getTime()) / (1000 * 60 * 60));
+        const amount = Math.ceil(hours) * table.price_per_hour;
+        
+        setHoursPlayed(hours);
         setCurrentAmount(amount);
+        setDurationText(formatDuration(hours));
       }, 1000);
 
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+      };
+    } else if (activeBooking?.hours_played) {
+      setDurationText(formatDuration(activeBooking.hours_played));
     }
-  }, [table.status, activeBooking, table.price_per_hour]);
+  }, [table.status, activeBooking?.start_time, table.price_per_hour, activeBooking?.hours_played]);
 
   const isPlaying = table.status === 'occupied';
   const isReserved = table.status === 'reserved';
@@ -75,7 +106,7 @@ export default function TableCard({
   };
 
   const tableAmount = currentAmount;
-  const foodAmount = activeBooking?.food_total || 0;
+  const foodAmount = localFoodTotal || activeBooking?.food_total || 0;
   const totalCurrentAmount = tableAmount + foodAmount;
 
   const getStatusColor = (statusCode: string) => {
@@ -113,7 +144,7 @@ export default function TableCard({
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-macchiato-subtext">Giá:</span>
               <span className="font-medium text-primary-600 dark:text-macchiato-blue">
-                {formatCurrency(table.price_per_hour)}
+                {formatCurrency(table.price_per_hour)} / giờ
               </span>
             </div>
             {table.location && (
@@ -144,8 +175,8 @@ export default function TableCard({
               <div className="flex justify-between items-center mb-2">
                 <div>
                   <p className="text-xs text-gray-600 dark:text-macchiato-subtext">Thời gian đã chơi</p>
-                  <p className="text-lg font-bold text-green-700 dark:text-green-400">
-                    {hoursPlayed.toFixed(1)} giờ
+                  <p className="text-lg font-bold font-mono text-green-700 dark:text-green-400">
+                    {durationText}
                   </p>
                 </div>
                 <div className="text-right">
@@ -293,7 +324,7 @@ export default function TableCard({
                     💰 Giá: {formatCurrency(table.price_per_hour)} VNĐ/giờ
                   </p>
                   <p className="text-xs text-blue-600 dark:text-macchiato-subtext mt-1">
-                    ⏱️ Thời gian sẽ được tính từ lúc bắt đầu
+                    ⏱️ Thời gian sẽ được tính từ lúc bắt đầu (tính theo giờ, làm tròn lên)
                   </p>
                 </div>
                 <div className="flex space-x-3 pt-4">
@@ -322,4 +353,6 @@ export default function TableCard({
       )}
     </>
   );
-}
+});
+
+export default TableCard;

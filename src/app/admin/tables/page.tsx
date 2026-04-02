@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { useToast } from '@/hooks/useToast';
 import TableList from '@/components/tables/TableList';
@@ -11,7 +11,6 @@ import OrderPanel from '@/components/orders/OrderPanel';
 import { Table, CreateTableData, UpdateTableData } from '@/types';
 import { BiPlus } from 'react-icons/bi';
 
-// Hàm lấy thời gian hiện tại theo múi giờ Việt Nam (UTC+7)
 const getVietnamTime = (): string => {
   const now = new Date();
   const vietnamOffset = 7 * 60 * 60 * 1000;
@@ -25,7 +24,6 @@ const getVietnamDate = (): Date => {
   return new Date(now.getTime() + vietnamOffset);
 };
 
-// Helper function to ensure number
 const toNumber = (value: any): number => {
   const num = Number(value);
   return isNaN(num) ? 0 : num;
@@ -44,128 +42,163 @@ export default function TablesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  
-  // Order panel state
+
   const [isOrderPanelOpen, setIsOrderPanelOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<{ table: Table; bookingId: number } | null>(null);
 
   const isMounted = useRef(true);
   const initialized = useRef(false);
+  const realtimeInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // ================= LOAD TABLES =================
+  const loadTables = useCallback(() => {
+    socket?.emit('get-tables-full', {}, (res: any) => {
+      if (!isMounted.current) return;
+
+      if (res.success) {
+        setTables(res.data);
+
+        const bookingsMap = new Map<number, any>();
+
+        res.data.forEach((table: any) => {
+          if (table.booking_id) {
+            const startTime = new Date(table.start_time);
+            const now = new Date();
+
+            const hoursPlayed = Math.max(
+              0,
+              (now.getTime() - startTime.getTime()) / (1000 * 60 * 60)
+            );
+
+            const currentAmount =
+              Math.ceil(hoursPlayed) * table.price_per_hour;
+
+            bookingsMap.set(table.id, {
+              id: table.booking_id,
+              start_time: table.start_time,
+              current_amount: currentAmount,
+              hours_played: hoursPlayed,
+              customer_name: table.customer_name,
+              customer_phone: table.customer_phone,
+              food_total: toNumber(table.food_total || 0),
+              total_amount:
+                currentAmount + toNumber(table.food_total || 0),
+            });
+          }
+        });
+
+        setActiveBookings(bookingsMap);
+      } else {
+        error(res.error);
+      }
+
+      setLoading(false);
+    });
+  }, [socket, error]);
+
+  // ================= INIT =================
   useEffect(() => {
     isMounted.current = true;
+
     if (isClient && socket && isConnected && !initialized.current) {
       initialized.current = true;
       loadTables();
     }
+
     return () => {
       isMounted.current = false;
+      if (realtimeInterval.current) clearInterval(realtimeInterval.current);
     };
-  }, [isClient, socket, isConnected]);
+  }, [isClient, socket, isConnected, loadTables]);
 
-  const loadTables = () => {
-    socket?.emit('get-tables', {}, (res: any) => {
-      if (!isMounted.current) return;
-      if (res.success) {
-        setTables(res.data);
-        res.data.forEach((table: Table) => {
-          if (table.status === 'occupied') {
-            getActiveBooking(table.id);
-          }
-        });
-      } else {
-        error(res.error);
-      }
-      setLoading(false);
-    });
-  };
+  // ================= REALTIME AMOUNT UPDATER =================
+  useEffect(() => {
+    if (!socket || !isClient) return;
 
-  const getActiveBooking = (tableId: number) => {
-    socket?.emit('get-bookings', { 
-      filters: { table_id: tableId, status: 'checked_in' } 
-    }, (res: any) => {
-      if (res.success && res.data.length > 0) {
-        const booking = res.data[0];
-        setActiveBookings(prev => {
-          const newMap = new Map(prev);
+    if (realtimeInterval.current) {
+      clearInterval(realtimeInterval.current);
+    }
+
+    realtimeInterval.current = setInterval(() => {
+      setActiveBookings(prev => {
+        const newMap = new Map(prev);
+
+        newMap.forEach((booking, tableId) => {
+          if (!booking?.start_time) return;
+
+          const table = tables.find(t => t.id === tableId);
+          if (!table) return;
+
+          const startTime = new Date(booking.start_time);
+          const now = new Date();
+
+          const hoursPlayed = Math.max(
+            0,
+            (now.getTime() - startTime.getTime()) / (1000 * 60 * 60)
+          );
+
+          const currentAmount =
+            Math.ceil(hoursPlayed) * table.price_per_hour;
+
           newMap.set(tableId, {
-            id: booking.id,
-            start_time: booking.start_time,
-            current_amount: 0,
-            hours_played: 0,
-            customer_name: booking.customer_name,
-            customer_phone: booking.customer_phone,
-            food_total: toNumber(booking.food_total || 0),
-            total_amount: toNumber(booking.total_with_food || booking.total_amount || 0)
+            ...booking,
+            current_amount: currentAmount,
+            hours_played: hoursPlayed,
+            total_amount:
+              currentAmount + (booking.food_total || 0),
           });
-          return newMap;
         });
-      }
-    });
-  };
 
-  const handlePlay = (table: Table, bookingId: number) => {
-    socket?.emit('get-bookings', { 
-      filters: { table_id: table.id, status: 'confirmed' } 
+        return newMap;
+      });
+    }, 1000);
+
+    return () => {
+      if (realtimeInterval.current) clearInterval(realtimeInterval.current);
+    };
+  }, [socket, isClient, tables]);
+
+  // ================= ACTIONS =================
+  const handlePlay = useCallback((table: Table, bookingId: number) => {
+    socket?.emit('get-bookings', {
+      filters: { table_id: table.id, status: 'confirmed' }
     }, (res: any) => {
       if (res.success && res.data.length > 0) {
         const booking = res.data[0];
+
         socket?.emit('check-in', { id: booking.id }, (checkInRes: any) => {
           if (checkInRes.success) {
             success(`Bắt đầu chơi! Bàn ${table.table_name} - Khách: ${booking.customer_name}`);
-            setActiveBookings(prev => {
-              const newMap = new Map(prev);
-              newMap.set(table.id, {
-                id: booking.id,
-                start_time: getVietnamTime(),
-                current_amount: 0,
-                hours_played: 0,
-                customer_name: booking.customer_name,
-                customer_phone: booking.customer_phone,
-                food_total: 0,
-                total_amount: 0
-              });
-              return newMap;
-            });
-            setTables(prev => 
-              prev.map(t => t.id === table.id ? { ...t, status: 'occupied' } : t)
-            );
+            setTimeout(() => loadTables(), 500);
           } else {
-            error(checkInRes.error || 'Không thể bắt đầu chơi');
+            error(checkInRes.error);
           }
         });
       } else {
         error('Không tìm thấy booking cho bàn này');
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
-  const handleEnd = (table: Table, bookingId: number) => {
+  const handleEnd = useCallback((table: Table, bookingId: number) => {
     const actualEndTime = getVietnamTime();
+
     socket?.emit('check-out', { id: bookingId, actualEndTime }, (res: any) => {
       if (res.success) {
         const totalAmount = res.data.total_amount;
         success(`Kết thúc! Bàn ${table.table_name} - Tổng tiền: ${totalAmount.toLocaleString('vi-VN')} VNĐ`);
-        setActiveBookings(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(table.id);
-          return newMap;
-        });
-        setTables(prev => 
-          prev.map(t => t.id === table.id ? { ...t, status: 'available' } : t)
-        );
         setTimeout(() => loadTables(), 500);
       } else {
-        error(res.error || 'Không thể kết thúc');
+        error(res.error);
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
-  const handlePlayDirect = (table: Table, customerName: string, customerPhone: string) => {
+  const handlePlayDirect = useCallback((table: Table, customerName: string, customerPhone: string) => {
     const startTime = getVietnamTime();
     const vietnamDate = getVietnamDate();
     const endTime = new Date(vietnamDate.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
@@ -189,23 +222,7 @@ export default function TablesPage() {
             socket?.emit('check-in', { id: bookingId }, (checkInRes: any) => {
               if (checkInRes.success) {
                 success(`Bắt đầu chơi! Bàn ${table.table_name} - Khách: ${customerName}`);
-                setActiveBookings(prev => {
-                  const newMap = new Map(prev);
-                  newMap.set(table.id, {
-                    id: bookingId,
-                    start_time: startTime,
-                    current_amount: 0,
-                    hours_played: 0,
-                    customer_name: customerName,
-                    customer_phone: customerPhone,
-                    food_total: 0,
-                    total_amount: 0
-                  });
-                  return newMap;
-                });
-                setTables(prev => 
-                  prev.map(t => t.id === table.id ? { ...t, status: 'occupied' } : t)
-                );
+                setTimeout(() => loadTables(), 500);
               } else {
                 error(checkInRes.error || 'Không thể bắt đầu chơi');
               }
@@ -218,14 +235,14 @@ export default function TablesPage() {
         error(res.error || 'Không thể tạo đặt bàn');
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
-  const handleOrder = (table: Table, bookingId: number) => {
+  const handleOrder = useCallback((table: Table, bookingId: number) => {
     setSelectedOrder({ table, bookingId });
     setIsOrderPanelOpen(true);
-  };
+  }, []);
 
-  const handleCreateTable = (data: CreateTableData) => {
+  const handleCreateTable = useCallback((data: CreateTableData) => {
     socket?.emit('create-table', data, (res: any) => {
       if (res.success) {
         success('Thêm bàn thành công');
@@ -235,9 +252,9 @@ export default function TablesPage() {
         error(res.error);
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
-  const handleUpdateTable = (data: UpdateTableData) => {
+  const handleUpdateTable = useCallback((data: UpdateTableData) => {
     socket?.emit('update-table', data, (res: any) => {
       if (res.success) {
         success('Cập nhật thành công');
@@ -247,9 +264,9 @@ export default function TablesPage() {
         error(res.error);
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
-  const handleDeleteTable = (id: number) => {
+  const handleDeleteTable = useCallback((id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa bàn này?')) return;
     socket?.emit('delete-table', { id }, (res: any) => {
       if (res.success) {
@@ -259,85 +276,46 @@ export default function TablesPage() {
         error(res.error);
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
-  const handleBookTable = (data: any) => {
+  const handleBookTable = useCallback((data: any) => {
     socket?.emit('create-booking', data, (res: any) => {
       if (res.success) {
         success('Đặt bàn thành công');
         setIsBookingModalOpen(false);
-        setTables(prev => 
-          prev.map(t => t.id === data.table_id ? { ...t, status: 'reserved' } : t)
-        );
+        loadTables();
       } else {
         error(res.error);
       }
     });
-  };
+  }, [socket, success, error, loadTables]);
 
+  // ================= SOCKET SYNC =================
   useEffect(() => {
-    if (!socket || !isClient) return;
+    if (!socket) return;
 
-    const handleTableUpdated = (updatedTable: Table) => {
-      setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
-      if (updatedTable.status !== 'occupied') {
-        setActiveBookings(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(updatedTable.id);
-          return newMap;
-        });
-      }
-    };
+    const refresh = () => loadTables();
 
-    const handleBookingUpdated = (booking: any) => {
-      if (booking.status === 'checked_in') {
-        setActiveBookings(prev => {
-          const newMap = new Map(prev);
-          newMap.set(booking.table_id, {
-            id: booking.id,
-            start_time: booking.start_time,
-            current_amount: 0,
-            hours_played: 0,
-            customer_name: booking.customer_name,
-            customer_phone: booking.customer_phone,
-            food_total: toNumber(booking.food_total || 0),
-            total_amount: toNumber(booking.total_with_food || booking.total_amount || 0)
-          });
-          return newMap;
-        });
-      } else if (booking.status === 'completed') {
-        setActiveBookings(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(booking.table_id);
-          return newMap;
-        });
-      } else {
-        setActiveBookings(prev => {
-          const newMap = new Map(prev);
-          const existing = newMap.get(booking.table_id);
-          if (existing) {
-            newMap.set(booking.table_id, {
-              ...existing,
-              food_total: toNumber(booking.food_total || existing.food_total || 0),
-              total_amount: toNumber(booking.total_with_food || booking.total_amount || existing.total_amount || 0)
-            });
-          }
-          return newMap;
-        });
-      }
-    };
-
-    socket.on('table-updated', handleTableUpdated);
-    socket.on('table-status-changed', handleTableUpdated);
-    socket.on('booking-updated', handleBookingUpdated);
+    socket.on('table-created', refresh);
+    socket.on('table-updated', refresh);
+    socket.on('table-deleted', refresh);
+    socket.on('table-status-changed', refresh);
+    socket.on('booking-updated', refresh);
+    socket.on('booking-cancelled', refresh);
+    socket.on('new-booking', refresh);
 
     return () => {
-      socket.off('table-updated', handleTableUpdated);
-      socket.off('table-status-changed', handleTableUpdated);
-      socket.off('booking-updated', handleBookingUpdated);
+      socket.off('table-created', refresh);
+      socket.off('table-updated', refresh);
+      socket.off('table-deleted', refresh);
+      socket.off('table-status-changed', refresh);
+      socket.off('booking-updated', refresh);
+      socket.off('booking-cancelled', refresh);
+      socket.off('new-booking', refresh);
     };
-  }, [socket, isClient]);
+  }, [socket, loadTables]);
 
+  // ================= UI =================
   if (!isClient) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -425,7 +403,7 @@ export default function TablesPage() {
           socket={socket}
           onOrderUpdate={() => {
             if (selectedOrder) {
-              getActiveBooking(selectedOrder.table.id);
+              setTimeout(() => loadTables(), 500);
             }
           }}
         />
