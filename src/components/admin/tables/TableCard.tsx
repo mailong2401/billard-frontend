@@ -213,36 +213,41 @@ const TableCard = memo(function TableCard({
           )}
 
           <div className="flex space-x-2">
+            {/* Play ngay button - style giống nút kết thúc */}
             {isAvailable && onPlayDirect && (
               <button
                 onClick={() => setShowPlayDirectModal(true)}
-                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-all hover:scale-[1.02] active:scale-95"
+                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:scale-[1.02] active:scale-95"
               >
                 <BiPlay className="h-4 w-4" />
                 <span>Play ngay</span>
               </button>
             )}
 
+            {/* Đặt bàn - giữ nguyên */}
             {isAvailable && (
               <button
                 onClick={() => onBook(table)}
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                  className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+
                 title="Đặt bàn"
               >
                 <BiCalendar className="h-4 w-4" />
               </button>
             )}
 
+            {/* Play button (khi có reservation) - style giống nút kết thúc */}
             {isReserved && onPlay && (
               <button
                 onClick={() => onPlay(table, 0)}
-                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black transition-all hover:scale-[1.02] active:scale-95"
+                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:scale-[1.02] active:scale-95"
               >
                 <BiPlay className="h-4 w-4" />
                 <span>Play</span>
               </button>
             )}
 
+            {/* Gọi đồ - giữ nguyên */}
             {isPlaying && onOrder && activeBooking && (
               <button
                 onClick={() => onOrder(table, activeBooking.id)}
@@ -253,6 +258,7 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
+            {/* Kết thúc - giữ nguyên */}
             {isPlaying && onEnd && activeBooking && (
               <button
                 onClick={() => onEnd(table, activeBooking.id)}
@@ -267,14 +273,14 @@ const TableCard = memo(function TableCard({
               <>
                 <button
                   onClick={() => onEdit(table)}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   title="Sửa"
                 >
                   <BiEdit className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => onDelete(table.id)}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   title="Xóa"
                 >
                   <BiTrash className="h-4 w-4" />

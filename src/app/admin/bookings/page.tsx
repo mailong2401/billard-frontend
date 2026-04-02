@@ -7,11 +7,18 @@ import BookingList from '@/components/admin/bookings/BookingList';
 import { Booking } from '@/types';
 
 export default function BookingsPage() {
+  const getVietnamDate = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
   const { emit, on, off, isConnected } = useSocket();
   const { success, error } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().slice(0, 10));
+  const [filterDate, setFilterDate] = useState(getVietnamDate());
   
   const isMounted = useRef(true);
   const initialLoaded = useRef(false);

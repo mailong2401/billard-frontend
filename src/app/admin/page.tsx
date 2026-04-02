@@ -6,6 +6,21 @@ import { BiTable, BiCalendar, BiDollar, BiUser, BiTrendingUp, BiCoffee, BiPlay }
 import { useSocket } from '@/hooks/useSocket';
 import { formatCurrency, formatDateTime } from '@/utils/formatters';
 
+// Helper: Lấy ngày hiện tại theo múi giờ Việt Nam
+const getVietnamDate = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper: Lấy ngày từ datetime string
+const getDateFromDatetime = (datetime: string): string => {
+  if (!datetime) return '';
+  return datetime.split(' ')[0];
+};
+
 // Định nghĩa types
 type TableStatus = 'available' | 'occupied' | 'reserved' | 'maintenance' | 'cleaning';
 type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled';
@@ -66,8 +81,8 @@ export default function AdminDashboard() {
       }
     });
 
-    // Load today's bookings
-    const today = new Date().toISOString().slice(0, 10);
+    // Load today's bookings - sử dụng ngày Việt Nam
+    const today = getVietnamDate();
     socket.emit('get-bookings', { filters: { date: today } }, (res: any) => {
       if (!isMounted.current) return;
       if (res.success) {
@@ -113,8 +128,8 @@ export default function AdminDashboard() {
     };
 
     const handleNewBooking = (booking: Booking) => {
-      const today = new Date().toISOString().slice(0, 10);
-      const bookingDate = booking.start_time?.split(' ')[0] || '';
+      const today = getVietnamDate();
+      const bookingDate = getDateFromDatetime(booking.start_time);
       
       if (bookingDate === today) {
         setBookings((prev) => {
@@ -141,8 +156,8 @@ export default function AdminDashboard() {
     };
 
     const handleBookingUpdated = (updated: Booking) => {
-      const today = new Date().toISOString().slice(0, 10);
-      const bookingDate = updated.start_time?.split(' ')[0] || '';
+      const today = getVietnamDate();
+      const bookingDate = getDateFromDatetime(updated.start_time);
       
       if (bookingDate === today) {
         setBookings((prev) => {
@@ -183,8 +198,8 @@ export default function AdminDashboard() {
     };
 
     const handleBookingCancelled = (booking: Booking) => {
-      const today = new Date().toISOString().slice(0, 10);
-      const bookingDate = booking.start_time?.split(' ')[0] || '';
+      const today = getVietnamDate();
+      const bookingDate = getDateFromDatetime(booking.start_time);
       
       if (bookingDate === today) {
         setBookings((prev) => {
@@ -245,8 +260,8 @@ export default function AdminDashboard() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang tải...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
         </div>
       </div>
     );
@@ -256,8 +271,8 @@ export default function AdminDashboard() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối đến server...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang kết nối đến server...</p>
         </div>
       </div>
     );
@@ -304,11 +319,11 @@ export default function AdminDashboard() {
 
   const getStatusColor = (status: BookingStatus) => {
     switch (status) {
-      case 'completed': return 'text-green-600 dark:text-macchiato-green bg-green-50 dark:bg-green-900/20';
-      case 'checked_in': return 'text-blue-600 dark:text-macchiato-blue bg-blue-50 dark:bg-blue-900/20';
-      case 'confirmed': return 'text-yellow-600 dark:text-macchiato-yellow bg-yellow-50 dark:bg-yellow-900/20';
-      case 'cancelled': return 'text-red-600 dark:text-macchiato-red bg-red-50 dark:bg-red-900/20';
-      default: return 'text-gray-600 dark:text-macchiato-subtext bg-gray-50 dark:bg-gray-900/20';
+      case 'completed': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
+      case 'checked_in': return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
+      case 'confirmed': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
+      case 'cancelled': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+      default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20';
     }
   };
 
@@ -326,21 +341,21 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-black dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-macchiato-subtext mt-1">Tổng quan về hệ thống quản lý bàn bi da</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Tổng quan về hệ thống quản lý bàn bi da</p>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statCards.map((stat, index) => (
           <Link href={stat.link} key={index}>
-              <div className="bg-white dark:bg-black border border-gray-400 dark:border-gray-400 rounded-lg shadow-md p-4 hover:shadow-lg transition-all cursor-pointer group">
+            <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-4 hover:shadow-lg transition-all cursor-pointer group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-600 dark:text-macchiato-subtext">{stat.title}</p>
-                  <p className={`text-xl font-bold mt-1 text-black dark:text-white`}>{stat.value}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{stat.title}</p>
+                  <p className="text-xl font-bold mt-1 text-black dark:text-white">{stat.value}</p>
                 </div>
-                <div className={`bg-black dark:bg-black border border-gray-200 dark:border-gray-700 p-2 rounded-full group-hover:scale-110 transition-transform`}>
-                  <stat.icon className="h-4 w-4 text-white" />
+                <div className="bg-black dark:bg-white p-2 rounded-full group-hover:scale-110 transition-transform">
+                  <stat.icon className="h-4 w-4 text-white dark:text-black" />
                 </div>
               </div>
             </div>
@@ -351,161 +366,144 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Access */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6">
-  <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
-    Truy cập nhanh
-  </h2>
+          <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
+            Truy cập nhanh
+          </h2>
 
-  <div className="space-y-3">
-    
-    <Link
-      href="/admin/tables"
-      className="flex items-center space-x-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 transition-all group"
-    >
-      <BiTable className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-      <div>
-        <p className="font-medium text-black dark:text-white">Quản lý bàn</p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Xem và quản lý danh sách bàn
-        </p>
-      </div>
-    </Link>
+          <div className="space-y-3">
+            <Link
+              href="/admin/tables"
+              className="flex items-center space-x-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 transition-all group"
+            >
+              <BiTable className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="font-medium text-black dark:text-white">Quản lý bàn</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Xem và quản lý danh sách bàn
+                </p>
+              </div>
+            </Link>
 
-    <Link
-      href="/admin/bookings"
-      className="flex items-center space-x-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 transition-all group"
-    >
-      <BiCalendar className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-      <div>
-        <p className="font-medium text-black dark:text-white">Quản lý đặt bàn</p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Xem và xử lý đặt bàn
-        </p>
-      </div>
-    </Link>
+            <Link
+              href="/admin/bookings"
+              className="flex items-center space-x-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 transition-all group"
+            >
+              <BiCalendar className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="font-medium text-black dark:text-white">Quản lý đặt bàn</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Xem và xử lý đặt bàn
+                </p>
+              </div>
+            </Link>
 
-    <Link
-      href="/admin/products"
-      className="flex items-center space-x-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 transition-all group"
-    >
-      <BiCoffee className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-      <div>
-        <p className="font-medium text-black dark:text-white">Quản lý sản phẩm</p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Quản lý đồ ăn, thức uống
-        </p>
-      </div>
-    </Link>
-
-  </div>
-</div>
+            <Link
+              href="/admin/products"
+              className="flex items-center space-x-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500 transition-all group"
+            >
+              <BiCoffee className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="font-medium text-black dark:text-white">Quản lý sản phẩm</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Quản lý đồ ăn, thức uống
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
 
         {/* Recent Bookings */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6">
-  
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-lg font-semibold text-black dark:text-white">
-      Đặt bàn gần đây
-    </h2>
-    <Link
-      href="/admin/bookings"
-      className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
-    >
-      Xem tất cả
-    </Link>
-  </div>
-
-  {loading ? (
-    <div className="flex justify-center py-8">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-    </div>
-  ) : recentBookings.length === 0 ? (
-    <div className="flex flex-col items-center justify-center py-8">
-      <BiCalendar className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-      <p className="text-gray-500 dark:text-gray-400 text-center">
-        Chưa có đặt bàn nào hôm nay
-      </p>
-    </div>
-  ) : (
-    <div className="space-y-3 max-h-96 overflow-y-auto">
-      
-      {recentBookings.map((booking) => (
-        <div key={booking.id}>
-          
-          <div className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all">
-            
-            {/* Left */}
-            <div className="flex items-center space-x-3">
-              
-              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full">
-                <BiUser className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              </div>
-
-              <div>
-                <p className="font-medium text-black dark:text-white">
-                  {booking.customer_name}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {booking.table_name || `Bàn #${booking.table_id}`} - {formatDateTime(booking.start_time)}
-                </p>
-              </div>
-            </div>
-
-            {/* Right */}
-            <div className="text-right">
-              <p className="text-sm font-medium text-black dark:text-white">
-                {formatCurrency(booking.total_amount || 0)}
-              </p>
-              <p className={`text-xs px-2 py-1 rounded-full mt-1 ${getStatusColor(booking.status)}`}>
-                {getStatusText(booking.status)}
-              </p>
-            </div>
-
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-black dark:text-white">
+              Đặt bàn gần đây
+            </h2>
+            <Link
+              href="/admin/bookings"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
+            >
+              Xem tất cả
+            </Link>
           </div>
 
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+            </div>
+          ) : recentBookings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <BiCalendar className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 text-center">
+                Chưa có đặt bàn nào hôm nay
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {recentBookings.map((booking) => (
+                <div key={booking.id}>
+                  <div className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full">
+                        <BiUser className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-black dark:text-white">
+                          {booking.customer_name}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {booking.table_name || `Bàn #${booking.table_id}`} - {formatDateTime(booking.start_time)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-black dark:text-white">
+                        {formatCurrency(booking.total_amount || 0)}
+                      </p>
+                      <p className={`text-xs px-2 py-1 rounded-full mt-1 ${getStatusColor(booking.status)}`}>
+                        {getStatusText(booking.status)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
-
-    </div>
-  )}
-</div>
       </div>
 
       {/* Table Status Summary */}
       <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-6">
-  
-  <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
-    Tình trạng bàn
-  </h2>
+        <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
+          Tình trạng bàn
+        </h2>
 
-  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-    
-    <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
-      <p className="text-2xl font-bold text-black dark:text-white">{availableTables}</p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">Trống</p>
-    </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
+            <p className="text-2xl font-bold text-black dark:text-white">{availableTables}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Trống</p>
+          </div>
 
-    <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
-      <p className="text-2xl font-bold text-black dark:text-white">{occupiedTables}</p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">Đang chơi</p>
-    </div>
+          <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
+            <p className="text-2xl font-bold text-black dark:text-white">{occupiedTables}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Đang chơi</p>
+          </div>
 
-    <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
-      <p className="text-2xl font-bold text-black dark:text-white">{reservedTables}</p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">Đã đặt</p>
-    </div>
+          <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
+            <p className="text-2xl font-bold text-black dark:text-white">{reservedTables}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Đã đặt</p>
+          </div>
 
-    <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
-      <p className="text-2xl font-bold text-black dark:text-white">{totalTables}</p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">Tổng số</p>
-    </div>
+          <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
+            <p className="text-2xl font-bold text-black dark:text-white">{totalTables}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Tổng số</p>
+          </div>
 
-    <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
-      <p className="text-2xl font-bold text-black dark:text-white">{todayCompleted}</p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">Đã kết thúc</p>
-    </div>
-
-  </div>
-</div>
+          <div className="text-center p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition">
+            <p className="text-2xl font-bold text-black dark:text-white">{todayCompleted}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Đã kết thúc</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
