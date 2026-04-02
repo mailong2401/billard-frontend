@@ -59,13 +59,6 @@ const TableList = memo(function TableList({
     reserved: tables.filter(t => t.status === 'reserved').length,
   };
 
-  const statColors = [
-    'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-macchiato-blue',
-    'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-macchiato-green',
-    'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-macchiato-red',
-    'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-macchiato-yellow',
-  ];
-
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -80,7 +73,7 @@ const TableList = memo(function TableList({
           { label: 'Đang chơi', value: stats.occupied },
           { label: 'Đã đặt', value: stats.reserved },
         ].map((stat, index) => (
-          <div key={stat.label} className={`${statColors[index]} rounded-lg p-3 text-center transition-colors`}>
+          <div key={stat.label} className={`bg-white dark:bg-black text-black dark:text-white border-2 border-gray-400 dark:border-gray-400 rounded-lg p-3 text-center transition-colors`}>
             <p className="text-2xl font-bold">{stat.value}</p>
             <p className="text-xs">{stat.label}</p>
           </div>
@@ -96,17 +89,17 @@ const TableList = memo(function TableList({
             placeholder="Tìm kiếm bàn theo tên hoặc số bàn..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-surface rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+            className="w-full pl-10 pr-4 py-2 border border-gray-400 dark:border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-black text-gray-900 dark:text-macchiato-text"
           />
         </div>
 
         <div className="flex space-x-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">Loại bàn</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Loại bàn</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-black text-black dark:text-white"
             >
               <option value="all">Tất cả</option>
               <option value="standard">Standard</option>
@@ -116,11 +109,11 @@ const TableList = memo(function TableList({
           </div>
 
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">Trạng thái</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Trạng thái</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+              className="w-full px-3 py-2 border border-gray-400 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-black text-black dark:text-white"
             >
               <option value="all">Tất cả</option>
               <option value="available">Trống</option>

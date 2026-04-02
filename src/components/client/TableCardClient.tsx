@@ -30,9 +30,9 @@ export default function TableCardClient({ table }: TableCardClientProps) {
 
   const getTableTypeColor = (type: string) => {
     switch (type) {
-      case 'vip': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20';
-      case 'tournament': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20';
-      default: return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
+      case 'vip': return 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30';
+      case 'tournament': return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30';
+      default: return 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30';
     }
   };
 
@@ -40,14 +40,14 @@ export default function TableCardClient({ table }: TableCardClientProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-macchiato-surface rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 hover:scale-[1.02]">
         <div className="p-5">
           <div className="flex justify-between items-start mb-3">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {table.table_name}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-macchiato-subtext">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 {table.table_number}
               </p>
             </div>
@@ -58,22 +58,22 @@ export default function TableCardClient({ table }: TableCardClientProps) {
 
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-macchiato-subtext">Giá:</span>
-              <span className="font-medium text-primary-600">
+              <span className="text-slate-600 dark:text-slate-400">Giá:</span>
+              <span className="font-medium text-sky-600 dark:text-sky-400">
                 {formatCurrency(table.price_per_hour)} / giờ
               </span>
             </div>
             {table.location && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-macchiato-subtext">Vị trí:</span>
-                <span className="font-medium text-gray-900 dark:text-macchiato-text">
+                <span className="text-slate-600 dark:text-slate-400">Vị trí:</span>
+                <span className="font-medium text-slate-900 dark:text-white">
                   {table.location}
                 </span>
               </div>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-macchiato-subtext">Trạng thái:</span>
-              <span className={`font-medium ${isAvailable ? 'text-green-600' : 'text-red-600'}`}>
+              <span className="text-slate-600 dark:text-slate-400">Trạng thái:</span>
+              <span className={`font-medium ${isAvailable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                 {isAvailable ? 'Trống' : 'Đang sử dụng'}
               </span>
             </div>
@@ -84,14 +84,14 @@ export default function TableCardClient({ table }: TableCardClientProps) {
               <>
                 <Link
                   href={`/client/booking?tableId=${table.id}`}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition"
+                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white transition-all duration-200 hover:scale-[1.02] active:scale-95"
                 >
                   <BiCalendar className="h-4 w-4" />
                   <span>Đặt bàn</span>
                 </Link>
                 <Link
                   href={`/client/play?tableId=${table.id}`}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition"
+                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200 hover:scale-[1.02] active:scale-95"
                 >
                   <BiPlay className="h-4 w-4" />
                   <span>Play ngay</span>
@@ -100,7 +100,7 @@ export default function TableCardClient({ table }: TableCardClientProps) {
             ) : (
               <button
                 disabled
-                className="w-full px-3 py-2 rounded-md text-sm font-medium bg-gray-300 text-gray-500 cursor-not-allowed"
+                className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed"
               >
                 Đang sử dụng
               </button>

@@ -10,7 +10,7 @@ export default function AdminLayout({
 }) {
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="min-h-screen bg-gray-50 dark:bg-macchiato-mantle transition-colors duration-300">
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
         <Sidebar />
         <main className="transition-all duration-300 min-h-screen">
           <div className="pl-0 md:pl-20 lg:pl-64">

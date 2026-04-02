@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { useToast } from '@/hooks/useToast';
-import TableList from '@/components/tables/TableList';
-import CreateTableModal from '@/components/tables/CreateTableModal';
-import EditTableModal from '@/components/tables/EditTableModal';
-import BookingForm from '@/components/bookings/BookingForm';
-import OrderPanel from '@/components/orders/OrderPanel';
+import TableList from '@/components/admin/tables/TableList';
+import CreateTableModal from '@/components/admin/tables/CreateTableModal';
+import EditTableModal from '@/components/admin/tables/EditTableModal';
+import BookingForm from '@/components/admin/bookings/BookingForm';
+import OrderPanel from '@/components/admin/tables/OrderPanel';
 import { Table, CreateTableData, UpdateTableData } from '@/types';
 import { BiPlus } from 'react-icons/bi';
 
@@ -316,43 +316,48 @@ export default function TablesPage() {
   }, [socket, loadTables]);
 
   // ================= UI =================
-  if (!isClient) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang tải...</p>
-        </div>
+if (!isClient) {
+  return (
+    <div className="flex justify-center items-center h-64">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  if (!isConnected) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối đến server...</p>
-        </div>
+if (!isConnected) {
+  return (
+    <div className="flex justify-center items-center h-64">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">Đang kết nối đến server...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-macchiato-text">Quản lý bàn</h1>
-          <p className="text-gray-600 dark:text-macchiato-subtext mt-1">Quản lý bàn bi da và theo dõi thời gian chơi</p>
-        </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-        >
-          <BiPlus size={20} />
-          <span>Thêm bàn</span>
-        </button>
-      </div>
+  <div>
+    <h1 className="text-3xl font-bold text-black dark:text-white">
+      Quản lý bàn
+    </h1>
+    <p className="text-gray-600 dark:text-gray-400 mt-1">
+      Quản lý bàn bi da và theo dõi thời gian chơi
+    </p>
+  </div>
+
+  <button
+    onClick={() => setIsCreateModalOpen(true)}
+    className="flex items-center gap-2 px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded-lg border border-gray-300 dark:border-gray-600 hover:opacity-80 transition"
+  >
+    <BiPlus size={20} />
+    <span>Thêm bàn</span>
+  </button>
+</div>
 
       <TableList
         tables={tables}

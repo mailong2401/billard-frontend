@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { useToast } from '@/hooks/useToast';
-import BookingList from '@/components/bookings/BookingList';
+import BookingList from '@/components/admin/bookings/BookingList';
 import { Booking } from '@/types';
 
 export default function BookingsPage() {
@@ -113,7 +113,6 @@ export default function BookingsPage() {
     emit('check-in', { id }, (response: any) => {
       if (response.success) {
         success('Check-in thành công');
-        // KHÔNG gọi loadBookings ở đây, event từ server sẽ cập nhật
       } else {
         error(response.error || 'Check-in thất bại');
       }
@@ -125,7 +124,6 @@ export default function BookingsPage() {
     emit('check-out', { id, actualEndTime }, (response: any) => {
       if (response.success) {
         success('Check-out thành công');
-        // KHÔNG gọi loadBookings ở đây, event từ server sẽ cập nhật
       } else {
         error(response.error || 'Check-out thất bại');
       }
@@ -137,7 +135,6 @@ export default function BookingsPage() {
       emit('cancel-booking', { id, reason: 'Khách hủy' }, (response: any) => {
         if (response.success) {
           success('Hủy đặt bàn thành công');
-          // KHÔNG gọi loadBookings ở đây, event từ server sẽ cập nhật
         } else {
           error(response.error || 'Hủy đặt bàn thất bại');
         }
@@ -149,8 +146,8 @@ export default function BookingsPage() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối đến server...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang kết nối đến server...</p>
         </div>
       </div>
     );
@@ -159,19 +156,19 @@ export default function BookingsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-macchiato-text">Quản lý đặt bàn</h1>
-        <p className="text-gray-600 dark:text-macchiato-subtext mt-1">Xem và xử lý các đơn đặt bàn</p>
+        <h1 className="text-3xl font-bold text-black dark:text-white">Quản lý đặt bàn</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Xem và xử lý các đơn đặt bàn</p>
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Chọn ngày
         </label>
         <input
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors cursor-pointer"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors cursor-pointer"
         />
       </div>
 

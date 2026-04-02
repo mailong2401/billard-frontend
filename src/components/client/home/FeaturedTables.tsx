@@ -20,7 +20,7 @@ export default function FeaturedTables({ tables }: FeaturedTablesProps) {
   if (tables.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-macchiato-subtext">
+        <p className="text-slate-500 dark:text-slate-400">
           Hiện không có bàn trống nào
         </p>
       </div>
@@ -29,7 +29,7 @@ export default function FeaturedTables({ tables }: FeaturedTablesProps) {
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-macchiato-text mb-4">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
         Bàn trống gần đây
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

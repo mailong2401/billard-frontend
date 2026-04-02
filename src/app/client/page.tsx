@@ -53,7 +53,7 @@ export default function ClientHome() {
   const vipTables = tables.filter(t => t.table_type === 'vip').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-macchiato-base">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Banner Slider */}
       <div className="mb-8">
         <BannerSlider 

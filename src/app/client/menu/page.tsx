@@ -13,7 +13,7 @@ interface Product {
   price: number;
   category_id: number;
   category_name: string;
-  is_available: boolean;  // boolean
+  is_available: boolean;
   stock: number;
   image_url?: string;
 }
@@ -23,7 +23,7 @@ interface Category {
   name: string;
   description?: string;
   sort_order: number;
-  is_active: boolean;  // boolean
+  is_active: boolean;
 }
 
 interface CartItem {
@@ -158,7 +158,6 @@ export default function MenuPage() {
     0
   );
 
-  // Filter products: chỉ hiển thị sản phẩm đang bán (is_available === true)
   const filteredProducts = products.filter(product => {
     if (product.is_available !== true) return false;
     if (selectedCategory && product.category_id !== selectedCategory) return false;
@@ -170,8 +169,8 @@ export default function MenuPage() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang tải thực đơn...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 dark:border-sky-400 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Đang tải thực đơn...</p>
         </div>
       </div>
     );
@@ -180,10 +179,10 @@ export default function MenuPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-macchiato-text mb-2">
-          🍽️ Thực đơn <span className="text-primary-600">Billiard Club</span>
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+          Thực đơn <span className="text-sky-600 dark:text-sky-400">Billiard Club</span>
         </h1>
-        <p className="text-gray-600 dark:text-macchiato-subtext">
+        <p className="text-slate-600 dark:text-slate-400">
           Đa dạng đồ uống và thức ăn, phục vụ tận nơi
         </p>
       </div>
@@ -191,13 +190,13 @@ export default function MenuPage() {
       {/* Search Bar */}
       <div className="mb-6 max-w-md mx-auto">
         <div className="relative">
-          <BiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-macchiato-subtext h-5 w-5" />
+          <BiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
           <input
             type="text"
             placeholder="Tìm kiếm món ăn, đồ uống..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-surface rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors"
+            className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-black text-slate-900 dark:text-white transition-colors"
           />
         </div>
       </div>
@@ -208,8 +207,8 @@ export default function MenuPage() {
           onClick={() => setSelectedCategory(null)}
           className={`px-4 py-2 rounded-full transition-all ${
             selectedCategory === null
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+              ? 'bg-sky-600 text-white shadow-md'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
           }`}
         >
           Tất cả
@@ -220,8 +219,8 @@ export default function MenuPage() {
             onClick={() => setSelectedCategory(cat.id)}
             className={`px-4 py-2 rounded-full transition-all ${
               selectedCategory === cat.id
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+                ? 'bg-sky-600 text-white shadow-md'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             {cat.name}
@@ -231,91 +230,87 @@ export default function MenuPage() {
 
       {/* Products Grid */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-macchiato-surface rounded-lg shadow-md">
+        <div className="text-center py-12 bg-white dark:bg-black rounded-lg shadow-md">
           <div className="flex flex-col items-center">
-            <BiFoodMenu className="h-16 w-16 text-gray-300 dark:text-macchiato-subtext mb-4" />
-            <p className="text-gray-500 dark:text-macchiato-subtext">Không tìm thấy sản phẩm nào</p>
-            <p className="text-sm text-gray-400 dark:text-macchiato-subtext/70 mt-1">
+            <BiFoodMenu className="h-16 w-16 text-slate-300 dark:text-slate-600 mb-4" />
+            <p className="text-slate-500 dark:text-slate-400">Không tìm thấy sản phẩm nào</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
               {searchTerm ? 'Thử tìm kiếm với từ khóa khác' : 'Hiện chưa có sản phẩm trong danh mục này'}
             </p>
           </div>
         </div>
       ) : (
         <>
-          <p className="text-sm text-gray-500 dark:text-macchiato-subtext mb-4">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
             Hiển thị {filteredProducts.length} sản phẩm
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white dark:bg-macchiato-surface rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+                  className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 hover:-translate-y-1 group"
               >
-                <div className="h-32 bg-gradient-to-r from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
+                <div className="h-32 bg-gradient-to-r from-sky-100 to-sky-200 dark:from-sky-900/30 dark:to-sky-800/30 flex items-center justify-center">
                   {product.category_name?.includes('uống') ? (
-                    <BiDrink className="h-16 w-16 text-primary-500" />
+                    <BiDrink className="h-16 w-16 text-sky-500 dark:text-sky-400" />
                   ) : (
-                    <BiFoodMenu className="h-16 w-16 text-orange-500" />
+                    <BiFoodMenu className="h-16 w-16 text-orange-500 dark:text-orange-400" />
                   )}
                 </div>
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-macchiato-text">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">
                         {product.name}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-macchiato-subtext">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {product.category_name}
                       </p>
                     </div>
-                    <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
+                    <span className="text-lg font-bold text-sky-600 dark:text-sky-400">
                       {formatCurrency(product.price)}
                     </span>
                   </div>
 
-                  {product.description && (
-                    <p className="text-sm text-gray-600 dark:text-macchiato-subtext mb-3 line-clamp-2">
-                      {product.description}
-                    </p>
-                  )}
+
 
                   {product.stock !== undefined && product.stock < 10 && product.stock > 0 && (
-                    <p className="text-xs text-orange-500 mb-2">
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mb-2">
                       ⚠️ Còn {product.stock} sản phẩm
                     </p>
                   )}
                   {product.stock === 0 && (
-                    <p className="text-xs text-red-500 mb-2">
+                    <p className="text-xs text-red-600 dark:text-red-400 mb-2">
                       ❌ Hết hàng
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-macchiato-mantle">
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-slate-700">
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => updateQuantity(product.id, -1)}
-                        className="p-1 rounded-full bg-gray-100 dark:bg-macchiato-mantle hover:bg-gray-200 dark:hover:bg-macchiato-overlay transition-colors disabled:opacity-50"
+                        className="p-1 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
                         disabled={(quantities[product.id] || 0) <= 0 || product.stock === 0}
                       >
-                        <BiMinus className="h-4 w-4 text-gray-600 dark:text-macchiato-subtext" />
+                        <BiMinus className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                       </button>
-                      <span className="w-8 text-center font-medium text-gray-900 dark:text-macchiato-text">
+                      <span className="w-8 text-center font-medium text-slate-900 dark:text-white">
                         {quantities[product.id] || 0}
                       </span>
                       <button
                         onClick={() => updateQuantity(product.id, 1)}
-                        className="p-1 rounded-full bg-gray-100 dark:bg-macchiato-mantle hover:bg-gray-200 dark:hover:bg-macchiato-overlay transition-colors disabled:opacity-50"
+                        className="p-1 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
                         disabled={product.stock === 0}
                       >
-                        <BiPlus className="h-4 w-4 text-gray-600 dark:text-macchiato-subtext" />
+                        <BiPlus className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                       </button>
                     </div>
 
                     <button
                       onClick={() => handleAddToCart(product)}
                       disabled={!quantities[product.id] || quantities[product.id] <= 0 || product.stock === 0}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-all hover:scale-105 text-sm"
+                      className="flex items-center space-x-1 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-all hover:scale-105 text-sm"
                     >
                       <BiShoppingBag className="h-4 w-4" />
                       <span>Thêm</span>
@@ -332,7 +327,7 @@ export default function MenuPage() {
       {cartItems.length > 0 && (
         <button
           onClick={() => setIsCartOpen(true)}
-          className="fixed bottom-6 right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-40"
+          className="fixed bottom-6 right-6 bg-sky-600 hover:bg-sky-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-40"
         >
           <div className="relative">
             <BiShoppingBag className="h-6 w-6" />
@@ -346,9 +341,9 @@ export default function MenuPage() {
       {/* Cart Modal */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-macchiato-surface rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
-            <div className="p-4 border-b border-gray-200 dark:border-macchiato-mantle flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-macchiato-text">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                 Giỏ hàng ({cartItems.length} món)
               </h2>
               <div className="flex gap-2">
@@ -360,7 +355,7 @@ export default function MenuPage() {
                 </button>
                 <button
                   onClick={() => setIsCartOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-macchiato-subtext"
+                  className="text-slate-500 hover:text-slate-700 dark:text-slate-400"
                 >
                   ✕
                 </button>
@@ -369,20 +364,20 @@ export default function MenuPage() {
 
             <div className="overflow-y-auto max-h-[60vh] p-4 space-y-3">
               {cartItems.length === 0 ? (
-                <p className="text-center text-gray-500 dark:text-macchiato-subtext py-8">
+                <p className="text-center text-slate-500 dark:text-slate-400 py-8">
                   Giỏ hàng trống
                 </p>
               ) : (
                 cartItems.map((item) => (
                   <div
                     key={item.product.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-macchiato-mantle rounded-lg"
+                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg"
                   >
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 dark:text-macchiato-text">
+                      <h3 className="font-medium text-slate-900 dark:text-white">
                         {item.product.name}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         {formatCurrency(item.product.price)} x {item.quantity}
                       </p>
                     </div>
@@ -390,16 +385,16 @@ export default function MenuPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => updateCartQuantity(item.product.id, item.quantity - 1)}
-                          className="p-1 rounded bg-gray-200 dark:bg-macchiato-surface hover:bg-gray-300 transition-colors"
+                          className="p-1 rounded bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors"
                         >
                           <BiMinus className="h-4 w-4" />
                         </button>
-                        <span className="w-8 text-center text-gray-900 dark:text-macchiato-text">
+                        <span className="w-8 text-center text-slate-900 dark:text-white">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateCartQuantity(item.product.id, item.quantity + 1)}
-                          className="p-1 rounded bg-gray-200 dark:bg-macchiato-surface hover:bg-gray-300 transition-colors"
+                          className="p-1 rounded bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors"
                         >
                           <BiPlus className="h-4 w-4" />
                         </button>
@@ -417,12 +412,12 @@ export default function MenuPage() {
             </div>
 
             {cartItems.length > 0 && (
-              <div className="p-4 border-t border-gray-200 dark:border-macchiato-mantle">
+              <div className="p-4 border-t border-slate-200 dark:border-slate-700">
                 <div className="flex justify-between mb-4">
-                  <span className="font-semibold text-gray-900 dark:text-macchiato-text">
+                  <span className="font-semibold text-slate-900 dark:text-white">
                     Tổng cộng:
                   </span>
-                  <span className="text-xl font-bold text-primary-600">
+                  <span className="text-xl font-bold text-sky-600 dark:text-sky-400">
                     {formatCurrency(cartTotal)}
                   </span>
                 </div>
@@ -431,7 +426,7 @@ export default function MenuPage() {
                     setIsCartOpen(false);
                     success('Đã gửi yêu cầu đặt món! Nhân viên sẽ phục vụ bạn ngay.');
                   }}
-                  className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-all hover:scale-[1.02]"
+                  className="w-full bg-sky-600 hover:bg-sky-700 text-white py-3 rounded-lg font-semibold transition-all hover:scale-[1.02]"
                 >
                   Đặt món
                 </button>

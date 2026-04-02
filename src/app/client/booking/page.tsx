@@ -46,8 +46,8 @@ export default function BookingPage() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 dark:border-sky-400 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Đang kết nối...</p>
         </div>
       </div>
     );
@@ -55,38 +55,38 @@ export default function BookingPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Nút quay lại - không dùng icon */}
+      {/* Nút quay lại */}
       <button
         onClick={() => router.back()}
-        className="flex items-center space-x-2 text-gray-600 dark:text-macchiato-subtext mb-4 hover:text-primary-600 transition-colors"
+        className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 mb-4 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
       >
         <span className="text-lg">←</span>
         <span>Quay lại</span>
       </button>
 
-      <div className="bg-white dark:bg-macchiato-surface rounded-xl shadow-md p-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-macchiato-text mb-2">
+      <div className="bg-white dark:bg-black rounded-xl shadow-md p-6">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           Đặt bàn
         </h1>
-        <p className="text-gray-600 dark:text-macchiato-subtext mb-6">
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
           Vui lòng điền thông tin để đặt bàn
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Họ tên */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Họ tên <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <BiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-macchiato-subtext h-5 w-5" />
+              <BiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
               <input
                 type="text"
                 name="customer_name"
                 value={formData.customer_name}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-mantle rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-black text-slate-900 dark:text-white"
                 placeholder="Nhập họ tên"
               />
             </div>
@@ -94,18 +94,18 @@ export default function BookingPage() {
 
           {/* Số điện thoại */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Số điện thoại <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <BiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-macchiato-subtext h-5 w-5" />
+              <BiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
               <input
                 type="tel"
                 name="customer_phone"
                 value={formData.customer_phone}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-mantle rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-black text-slate-900 dark:text-white"
                 placeholder="Nhập số điện thoại"
               />
             </div>
@@ -113,43 +113,43 @@ export default function BookingPage() {
 
           {/* Thời gian bắt đầu */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Thời gian bắt đầu <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <BiTime className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-macchiato-subtext h-5 w-5" />
+              <BiTime className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
               <input
                 type="datetime-local"
                 name="start_time"
                 value={formData.start_time}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-mantle rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-black text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           {/* Thời gian kết thúc */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Thời gian kết thúc <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <BiTime className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-macchiato-subtext h-5 w-5" />
+              <BiTime className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
               <input
                 type="datetime-local"
                 name="end_time"
                 value={formData.end_time}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-mantle rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-black text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           {/* Ghi chú */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Ghi chú
             </label>
             <textarea
@@ -157,7 +157,7 @@ export default function BookingPage() {
               value={formData.notes}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-macchiato-mantle rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white dark:bg-black text-slate-900 dark:text-white"
               placeholder="Nhập ghi chú (nếu có)..."
             />
           </div>
@@ -167,14 +167,14 @@ export default function BookingPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-macchiato-mantle text-gray-700 dark:text-macchiato-subtext rounded-lg hover:bg-gray-50 dark:hover:bg-macchiato-mantle transition-colors"
+              className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Đang xử lý...' : 'Đặt bàn'}
             </button>

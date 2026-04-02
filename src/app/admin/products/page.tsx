@@ -14,7 +14,7 @@ interface Product {
   price: number;
   category_id: number;
   category_name: string;
-  is_available: boolean;  // boolean, không phải number
+  is_available: boolean;
   stock: number;
   image_url?: string;
 }
@@ -24,7 +24,7 @@ interface Category {
   name: string;
   description: string;
   sort_order: number;
-  is_active: boolean;  // boolean
+  is_active: boolean;
 }
 
 export default function ProductsPage() {
@@ -194,8 +194,8 @@ export default function ProductsPage() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang kết nối đến server...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang kết nối đến server...</p>
         </div>
       </div>
     );
@@ -205,20 +205,20 @@ export default function ProductsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-macchiato-text">Quản lý sản phẩm</h1>
-          <p className="text-gray-600 dark:text-macchiato-subtext mt-1">Quản lý danh sách đồ ăn, đồ uống và danh mục</p>
+          <h1 className="text-3xl font-bold text-black dark:text-white">Quản lý sản phẩm</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Quản lý danh sách đồ ăn, đồ uống và danh mục</p>
         </div>
         <div className="flex space-x-3">
           <button
             onClick={() => setIsCategoryModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-md"
           >
             <BiPlus size={20} />
             <span>Thêm danh mục</span>
           </button>
           <button
             onClick={() => setIsProductModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-all hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-4 py-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg transition-all hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-md"
           >
             <BiPlus size={20} />
             <span>Thêm sản phẩm</span>
@@ -233,8 +233,8 @@ export default function ProductsPage() {
             onClick={() => setSelectedCategory(null)}
             className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
               selectedCategory === null
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+                ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
             Tất cả
@@ -245,8 +245,8 @@ export default function ProductsPage() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
                 selectedCategory === cat.id
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               {cat.name}
@@ -258,13 +258,13 @@ export default function ProductsPage() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
-          <BiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-macchiato-subtext h-5 w-5" />
+          <BiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-5 w-5" />
           <input
             type="text"
             placeholder="Tìm kiếm sản phẩm..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-macchiato-surface rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors"
           />
         </div>
       </div>
@@ -272,14 +272,14 @@ export default function ProductsPage() {
       {/* Products Grid */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-macchiato-blue"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white"></div>
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-macchiato-base rounded-lg shadow-md">
+        <div className="text-center py-12 bg-white dark:bg-black rounded-lg shadow-md border border-gray-200 dark:border-gray-800">
           <div className="flex flex-col items-center">
-            <BiSearch className="h-16 w-16 text-gray-300 dark:text-macchiato-subtext mb-4" />
-            <p className="text-gray-500 dark:text-macchiato-subtext">Không tìm thấy sản phẩm nào</p>
-            <p className="text-sm text-gray-400 dark:text-macchiato-subtext/70 mt-1">
+            <BiSearch className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">Không tìm thấy sản phẩm nào</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
               Thử tìm kiếm với từ khóa khác
             </p>
           </div>
@@ -289,41 +289,46 @@ export default function ProductsPage() {
           {filteredProducts.map((product) => (
             <div 
               key={product.id} 
-              className="bg-white dark:bg-macchiato-base rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+              className="bg-white dark:bg-black rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-200 dark:border-gray-800"
             >
               <div className="p-5">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text">
+                    <h3 className="text-lg font-semibold text-black dark:text-white">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-macchiato-subtext">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {product.category_name}
                     </p>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     product.is_available === true
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                      : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
                   }`}>
-                    {product.is_available === true ? '✅ Đang bán' : '❌ Ngừng bán'}
+                    {product.is_available === true ? 'Đang bán' : 'Ngừng bán'}
                   </span>
                 </div>
                 
                 {product.description && (
-                  <p className="text-sm text-gray-600 dark:text-macchiato-subtext mb-3 line-clamp-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                     {product.description}
                   </p>
                 )}
                 
-                <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-macchiato-surface">
+                <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <div>
-                    <span className="text-xl font-bold text-primary-600 dark:text-macchiato-blue">
+                    <span className="text-xl font-bold text-black dark:text-white">
                       {product.price.toLocaleString('vi-VN')}đ
                     </span>
-                    {product.stock !== undefined && product.stock < 10 && (
-                      <p className="text-xs text-orange-500 mt-1">
-                        Còn {product.stock} sản phẩm
+                    {product.stock !== undefined && product.stock < 10 && product.stock > 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        ⚠️ Còn {product.stock} sản phẩm
+                      </p>
+                    )}
+                    {product.stock === 0 && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        ❌ Hết hàng
                       </p>
                     )}
                   </div>
@@ -333,14 +338,14 @@ export default function ProductsPage() {
                         setEditingProduct(product);
                         setIsProductModalOpen(true);
                       }}
-                      className="p-2 text-blue-600 dark:text-macchiato-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all hover:scale-110"
+                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
                       title="Sửa"
                     >
                       <BiEdit className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(product.id)}
-                      className="p-2 text-red-600 dark:text-macchiato-red hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all hover:scale-110"
+                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
                       title="Xóa"
                     >
                       <BiTrash className="h-5 w-5" />

@@ -10,7 +10,7 @@ export default function ClientLayout({
 }) {
   return (
     <ProtectedRoute allowedRoles={['client']}>
-      <div className="min-h-screen bg-gray-50 dark:bg-macchiato-base">
+      <div className="min-h-screen bg-white dark:bg-black">
         <Header />
         <main className="container mx-auto px-4 py-8">
           {children}

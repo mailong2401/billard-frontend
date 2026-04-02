@@ -23,7 +23,7 @@ export default function ProductModal({
     description: '',
     price: 0,
     category_id: '',
-    is_available: 1,
+    is_available: true,
     stock: 0
   });
 
@@ -34,7 +34,7 @@ export default function ProductModal({
         description: product.description || '',
         price: product.price,
         category_id: product.category_id?.toString() || '',
-        is_available: product.is_available !== undefined ? product.is_available : 1,
+        is_available: product.is_available !== undefined ? product.is_available : true,
         stock: product.stock || 0
       });
     } else {
@@ -43,7 +43,7 @@ export default function ProductModal({
         description: '',
         price: 0,
         category_id: '',
-        is_available: 1,
+        is_available: true,
         stock: 0
       });
     }
@@ -55,11 +55,11 @@ export default function ProductModal({
       ...formData,
       price: Number(formData.price),
       category_id: Number(formData.category_id),
-      stock: Number(formData.stock)
+      stock: Number(formData.stock),
+      is_available: formData.is_available
     });
   };
 
-  // Format price display
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat('vi-VN').format(value);
   };
@@ -67,15 +67,15 @@ export default function ProductModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-xl max-w-md w-full transform transition-all animate-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-macchiato-surface">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-macchiato-text">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-black rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
+          <h2 className="text-xl font-semibold text-black dark:text-white">
             {product ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}
           </h2>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-600 dark:text-macchiato-subtext dark:hover:text-macchiato-text transition-all hover:scale-110"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all hover:scale-110"
           >
             <BiX className="h-6 w-6" />
           </button>
@@ -83,8 +83,8 @@ export default function ProductModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
-              Tên sản phẩm <span className="text-red-500 dark:text-macchiato-red">*</span>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Tên sản phẩm <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -92,20 +92,20 @@ export default function ProductModal({
               autoFocus
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors"
               placeholder="Nhập tên sản phẩm"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
-              Danh mục <span className="text-red-500 dark:text-macchiato-red">*</span>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Danh mục <span className="text-red-500">*</span>
             </label>
             <select
               required
               value={formData.category_id}
               onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors cursor-pointer"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors cursor-pointer"
             >
               <option value="">-- Chọn danh mục --</option>
               {categories.map((cat) => (
@@ -117,8 +117,8 @@ export default function ProductModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
-              Giá (VNĐ) <span className="text-red-500 dark:text-macchiato-red">*</span>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Giá (VNĐ) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -128,22 +128,22 @@ export default function ProductModal({
                 step="1000"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors pr-16"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors pr-16"
                 placeholder="0"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-macchiato-subtext">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
                 VNĐ
               </span>
             </div>
             {formData.price > 0 && (
-              <p className="text-xs text-green-600 dark:text-macchiato-green mt-1">
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                 {formatPrice(formData.price)} VNĐ
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Số lượng tồn kho
             </label>
             <input
@@ -151,35 +151,35 @@ export default function ProductModal({
               min="0"
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors"
               placeholder="0"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Mô tả
             </label>
             <textarea
               rows={3}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors resize-none"
               placeholder="Mô tả sản phẩm..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-macchiato-subtext mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Trạng thái
             </label>
             <select
-              value={formData.is_available}
-              onChange={(e) => setFormData({ ...formData, is_available: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text transition-colors cursor-pointer"
+              value={formData.is_available ? 'true' : 'false'}
+              onChange={(e) => setFormData({ ...formData, is_available: e.target.value === 'true' })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors cursor-pointer"
             >
-              <option value={1}>✅ Đang bán</option>
-              <option value={0}>❌ Ngừng bán</option>
+              <option value="true">Đang bán</option>
+              <option value="false">Ngừng bán</option>
             </select>
           </div>
 
@@ -187,13 +187,13 @@ export default function ProductModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-macchiato-surface rounded-md text-gray-700 dark:text-macchiato-subtext hover:bg-gray-50 dark:hover:bg-macchiato-surface transition-all hover:scale-[1.02] active:scale-95"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all hover:scale-[1.02] active:scale-95"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-all hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-md"
+              className="flex-1 px-4 py-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-md transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
             >
               {product ? 'Cập nhật' : 'Thêm mới'}
             </button>

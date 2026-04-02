@@ -266,7 +266,6 @@ export default function OrderPanel({
         setCurrentBooking(updatedBooking);
         setCart(updatedBooking.items);
         if (onOrderUpdate) onOrderUpdate();
-        alert('Đã cập nhật trạng thái món ăn!');
       }
     });
   };
@@ -278,14 +277,13 @@ export default function OrderPanel({
       served: { label: 'Đã phục vụ', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' },
       cancelled: { label: 'Đã hủy', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' }
     };
-    return labels[status] || { label: status, color: 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext' };
+    return labels[status] || { label: status, color: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400' };
   };
 
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
     if (name.includes('bia')) return <BiBeer className="inline mr-1" />;
     if (name.includes('ăn') || name.includes('food')) return <BiFoodMenu className="inline mr-1" />;
-    if (name.includes('thuốc')) return <BiCoffee className="inline mr-1" />;
     return <BiCoffee className="inline mr-1" />;
   };
 
@@ -302,22 +300,29 @@ export default function OrderPanel({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="w-full max-w-5xl bg-white dark:bg-macchiato-base h-full overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
+      <div className="w-full max-w-5xl bg-white dark:bg-black h-full overflow-y-auto border-l border-gray-200 dark:border-gray-800">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-macchiato-base border-b border-gray-200 dark:border-macchiato-surface p-4 flex justify-between items-center">
+        <div className="sticky top-0 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-macchiato-text">Đặt đồ ăn/uống</h2>
-            <p className="text-sm text-gray-500 dark:text-macchiato-subtext">Bàn {tableName}</p>
+            <h2 className="text-xl font-bold text-black dark:text-white">
+              Đặt đồ ăn/uống
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Bàn {tableName}
+            </p>
             {currentBooking && (
-              <p className="text-xs text-gray-400 dark:text-macchiato-subtext/70">Mã đặt: {currentBooking.booking_code}</p>
+              <p className="text-xs text-gray-400">
+                Mã đặt: {currentBooking.booking_code}
+              </p>
             )}
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-2 hover:bg-gray-100 dark:hover:bg-macchiato-surface rounded-lg transition-colors text-gray-500 dark:text-macchiato-subtext"
+
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           >
-            <BiX className="h-6 w-6" />
+            <BiX className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
@@ -332,7 +337,7 @@ export default function OrderPanel({
                   placeholder="Tìm kiếm sản phẩm..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-macchiato-surface rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-macchiato-base text-gray-900 dark:text-macchiato-text"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
@@ -342,10 +347,10 @@ export default function OrderPanel({
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1 ${
+                    className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center gap-1 border transition ${
                       selectedCategory === cat.id
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+                        ? 'bg-black text-white dark:bg-white dark:text-black border-gray-300 dark:border-gray-600'
+                        : 'bg-white dark:bg-black text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
                     {getCategoryIcon(cat.name)}
@@ -362,20 +367,22 @@ export default function OrderPanel({
                   .map((product) => (
                     <div
                       key={product.id}
-                      className="border border-gray-200 dark:border-macchiato-surface rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-macchiato-base"
                       onClick={() => addToCart(product)}
+                      className="border border-gray-300 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-black hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium text-gray-900 dark:text-macchiato-text text-sm">{product.name}</h3>
-                        <span className="text-sm font-bold text-primary-600 dark:text-macchiato-blue">
+                        <h3 className="font-medium text-black dark:text-white text-sm">{product.name}</h3>
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
                           {toNumber(product.price).toLocaleString('vi-VN')}đ
                         </span>
                       </div>
                       {product.description && (
-                        <p className="text-xs text-gray-500 dark:text-macchiato-subtext">{product.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 line-clamp-2">
+                          {product.description}
+                        </p>
                       )}
-                      <button className="mt-2 w-full bg-primary-600 hover:bg-primary-700 text-white py-1 rounded-md text-sm transition-colors">
-                        <BiPlus className="inline mr-1" /> Thêm
+                      <button className="mt-2 w-full bg-black text-white dark:bg-white dark:text-black py-1.5 rounded-md border border-gray-300 dark:border-gray-600 hover:opacity-80 transition flex items-center justify-center gap-1">
+                        <BiPlus className="h-4 w-4" /> Thêm
                       </button>
                     </div>
                   ))}
@@ -384,56 +391,62 @@ export default function OrderPanel({
 
             {/* Right - Cart */}
             <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-macchiato-mantle rounded-lg p-4">
+              <div className="bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text">
-                    <BiCart className="inline mr-2" />
+                  <h3 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
+                    <BiCart className="h-5 w-5" />
                     Danh sách món đã gọi
                   </h3>
                 </div>
 
                 {activeCartItems.length === 0 ? (
-                  <p className="text-gray-500 dark:text-macchiato-subtext text-center py-8">Chưa có sản phẩm nào được gọi</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">Chưa có sản phẩm nào được gọi</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {activeCartItems.map((item, index) => (
-                      <div key={item.id || index} className="flex justify-between items-center border-b border-gray-200 dark:border-macchiato-surface pb-2">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 dark:text-macchiato-text text-sm">{item.product_name}</p>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <button
-                              onClick={() => item.id && updateCartItem(item.id, item.quantity - 1)}
-                              disabled={loading || !item.id}
-                              className="p-1 bg-gray-200 dark:bg-macchiato-surface rounded hover:bg-gray-300 dark:hover:bg-macchiato-overlay disabled:opacity-50 transition-colors"
-                            >
-                              <BiMinus className="h-3 w-3" />
-                            </button>
-                            <span className="text-sm text-gray-900 dark:text-macchiato-text">{toNumber(item.quantity)}</span>
-                            <button
-                              onClick={() => item.id && updateCartItem(item.id, item.quantity + 1)}
-                              disabled={loading || !item.id}
-                              className="p-1 bg-gray-200 dark:bg-macchiato-surface rounded hover:bg-gray-300 dark:hover:bg-macchiato-overlay disabled:opacity-50 transition-colors"
-                            >
-                              <BiPlus className="h-3 w-3" />
-                            </button>
+                    {activeCartItems.map((item, index) => {
+                      const statusInfo = getStatusLabel(item.status);
+                      return (
+                        <div key={item.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-black dark:text-white text-sm">{item.product_name}</p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <button
+                                  onClick={() => item.id && updateCartItem(item.id, item.quantity - 1)}
+                                  disabled={loading || !item.id}
+                                  className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                >
+                                  <BiMinus className="h-3 w-3" />
+                                </button>
+                                <span className="text-sm text-black dark:text-white">{toNumber(item.quantity)}</span>
+                                <button
+                                  onClick={() => item.id && updateCartItem(item.id, item.quantity + 1)}
+                                  disabled={loading || !item.id}
+                                  className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                >
+                                  <BiPlus className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-black dark:text-white">
+                                {toNumber(item.subtotal).toLocaleString('vi-VN')}đ
+                              </p>
+
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-primary-600 dark:text-macchiato-blue">
-                            {toNumber(item.subtotal).toLocaleString('vi-VN')}đ
-                          </p>
                           {item.id && item.status !== 'served' && (
-                            <div className="mt-1">
+                            <div className="flex justify-end gap-2 mt-2">
                               <button
                                 onClick={() => removeCartItem(item.id!)}
-                                className="text-red-500 dark:text-macchiato-red text-xs hover:text-red-700 dark:hover:text-red-400 mr-2 transition-colors"
+                                className="text-red-500 dark:text-red-400 text-xs hover:text-red-700 dark:hover:text-red-300 transition-colors flex items-center gap-1"
                               >
-                                <BiTrash className="inline" /> Xóa
+                                <BiTrash className="h-3 w-3" /> Xóa
                               </button>
                               {item.status === 'preparing' && (
                                 <button
                                   onClick={() => markItemAsServed(item.id!)}
-                                  className="text-green-500 dark:text-macchiato-green text-xs hover:text-green-700 dark:hover:text-green-400 transition-colors"
+                                  className="text-green-500 dark:text-green-400 text-xs hover:text-green-700 dark:hover:text-green-300 transition-colors flex items-center gap-1"
                                 >
                                   ✓ Phục vụ
                                 </button>
@@ -441,20 +454,20 @@ export default function OrderPanel({
                             </div>
                           )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
                 {activeCartItems.length > 0 && (
-                  <div className="border-t border-gray-200 dark:border-macchiato-surface mt-4 pt-4">
+                  <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
                     <div className="flex justify-between mb-2">
-                      <span className="font-semibold text-gray-900 dark:text-macchiato-text">Tạm tính:</span>
-                      <span className="text-xl font-bold text-primary-600 dark:text-macchiato-blue">
+                      <span className="font-semibold text-black dark:text-white">Tạm tính:</span>
+                      <span className="text-xl font-bold text-black dark:text-white">
                         {cartTotal.toLocaleString('vi-VN')}đ
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-macchiato-subtext text-center mt-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
                       * Món ăn đã được gửi xuống bếp ngay khi thêm vào giỏ
                     </p>
                   </div>

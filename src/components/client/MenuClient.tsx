@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { BiCoffee, BiFoodMenu, BiDrink, BiShoppingBag, BiPlus, BiMinus } from 'react-icons/bi';
-import Image from 'next/image';
 import { formatCurrency } from '@/utils/formatters';
 
 interface Product {
@@ -166,8 +165,8 @@ export default function MenuClient({ onAddToCart }: MenuClientProps) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-macchiato-subtext">Đang tải thực đơn...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 dark:border-sky-400 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Đang tải thực đơn...</p>
         </div>
       </div>
     );
@@ -177,10 +176,10 @@ export default function MenuClient({ onAddToCart }: MenuClientProps) {
     <div>
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-macchiato-text mb-2">
-          Thực đơn <span className="text-primary-600">Billiard Club</span>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+          Thực đơn <span className="text-sky-600 dark:text-sky-400">Billiard Club</span>
         </h2>
-        <p className="text-gray-600 dark:text-macchiato-subtext">
+        <p className="text-slate-600 dark:text-slate-400">
           Đa dạng đồ uống và thức ăn, phục vụ tận nơi
         </p>
       </div>
@@ -191,8 +190,8 @@ export default function MenuClient({ onAddToCart }: MenuClientProps) {
           onClick={() => setSelectedCategory(null)}
           className={`px-4 py-2 rounded-full transition-all ${
             selectedCategory === null
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+              ? 'bg-sky-600 text-white shadow-md'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
           }`}
         >
           Tất cả
@@ -203,8 +202,8 @@ export default function MenuClient({ onAddToCart }: MenuClientProps) {
             onClick={() => setSelectedCategory(cat.id)}
             className={`px-4 py-2 rounded-full transition-all ${
               selectedCategory === cat.id
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext hover:bg-gray-200 dark:hover:bg-macchiato-overlay'
+                ? 'bg-sky-600 text-white shadow-md'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             {cat.name}
@@ -217,63 +216,63 @@ export default function MenuClient({ onAddToCart }: MenuClientProps) {
         {displayProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-white dark:bg-macchiato-surface rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+            className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
           >
             {/* Product Image Placeholder */}
-            <div className="h-32 bg-gradient-to-r from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
+            <div className="h-32 bg-gradient-to-r from-sky-100 to-sky-200 dark:from-sky-900/30 dark:to-sky-800/30 flex items-center justify-center">
               {product.category_name === 'Đồ uống' ? (
-                <BiDrink className="h-16 w-16 text-primary-500" />
+                <BiDrink className="h-16 w-16 text-sky-500 dark:text-sky-400" />
               ) : (
-                <BiFoodMenu className="h-16 w-16 text-orange-500" />
+                <BiFoodMenu className="h-16 w-16 text-orange-500 dark:text-orange-400" />
               )}
             </div>
 
             <div className="p-4">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-macchiato-text">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
                     {product.name}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-macchiato-subtext">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {product.category_name}
                   </p>
                 </div>
-                <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
+                <span className="text-lg font-bold text-sky-600 dark:text-sky-400">
                   {formatCurrency(product.price)}
                 </span>
               </div>
 
               {product.description && (
-                <p className="text-sm text-gray-600 dark:text-macchiato-subtext mb-3 line-clamp-2">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
                   {product.description}
                 </p>
               )}
 
               {/* Quantity Selector */}
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-macchiato-mantle">
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-slate-700">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => updateQuantity(product.id, -1)}
-                    className="p-1 rounded-full bg-gray-100 dark:bg-macchiato-mantle hover:bg-gray-200 dark:hover:bg-macchiato-overlay transition-colors"
+                    className="p-1 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                     disabled={(quantities[product.id] || 0) <= 0}
                   >
-                    <BiMinus className="h-4 w-4 text-gray-600 dark:text-macchiato-subtext" />
+                    <BiMinus className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   </button>
-                  <span className="w-8 text-center font-medium text-gray-900 dark:text-macchiato-text">
+                  <span className="w-8 text-center font-medium text-slate-900 dark:text-white">
                     {quantities[product.id] || 0}
                   </span>
                   <button
                     onClick={() => updateQuantity(product.id, 1)}
-                    className="p-1 rounded-full bg-gray-100 dark:bg-macchiato-mantle hover:bg-gray-200 dark:hover:bg-macchiato-overlay transition-colors"
+                    className="p-1 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                   >
-                    <BiPlus className="h-4 w-4 text-gray-600 dark:text-macchiato-subtext" />
+                    <BiPlus className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   </button>
                 </div>
 
                 <button
                   onClick={() => handleAddToCart(product)}
                   disabled={!quantities[product.id] || quantities[product.id] <= 0}
-                  className="flex items-center space-x-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-all hover:scale-105 text-sm"
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-all hover:scale-105 text-sm"
                 >
                   <BiShoppingBag className="h-4 w-4" />
                   <span>Thêm</span>
@@ -287,8 +286,8 @@ export default function MenuClient({ onAddToCart }: MenuClientProps) {
       {/* Empty State */}
       {displayProducts.length === 0 && (
         <div className="text-center py-12">
-          <BiCoffee className="h-16 w-16 text-gray-300 dark:text-macchiato-subtext mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-macchiato-subtext">Hiện chưa có sản phẩm nào</p>
+          <BiCoffee className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <p className="text-slate-500 dark:text-slate-400">Hiện chưa có sản phẩm nào</p>
         </div>
       )}
     </div>
