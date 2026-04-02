@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 
 // Import ảnh từ thư mục assets

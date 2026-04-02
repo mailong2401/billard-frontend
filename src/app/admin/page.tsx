@@ -4,10 +4,41 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { BiTable, BiCalendar, BiDollar, BiUser, BiTrendingUp, BiCoffee, BiPlay } from 'react-icons/bi';
 import { useSocket } from '@/hooks/useSocket';
-import { Table, Booking } from '@/types';
 import { formatCurrency, formatDateTime } from '@/utils/formatters';
 
-export default function Home() {
+// Định nghĩa types
+type TableStatus = 'available' | 'occupied' | 'reserved' | 'maintenance' | 'cleaning';
+type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled';
+
+interface Table {
+  id: number;
+  table_number: string;
+  table_name: string;
+  table_type: 'standard' | 'vip' | 'tournament';
+  price_per_hour: number;
+  status: TableStatus;
+  description: string | null;
+  location: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Booking {
+  id: number;
+  booking_code: string;
+  table_id: number;
+  table_name?: string;
+  customer_name: string;
+  customer_phone: string;
+  start_time: string;
+  end_time: string;
+  total_amount: number;
+  status: BookingStatus;
+  created_at: string;
+}
+
+export default function AdminDashboard() {
   const { socket, isConnected } = useSocket();
   const [tables, setTables] = useState<Table[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -53,7 +84,7 @@ export default function Home() {
 
     if (isClient && socket && isConnected && !initialized.current) {
       initialized.current = true;
-      console.log('🏠 Home: Initialized, loading data...');
+      console.log('🏠 Admin Dashboard: Initialized, loading data...');
       loadData();
     }
 
@@ -67,7 +98,7 @@ export default function Home() {
   useEffect(() => {
     if (!socket || !isClient) return;
 
-    console.log('🏠 Home: Setting up realtime listeners');
+    console.log('🏠 Admin Dashboard: Setting up realtime listeners');
 
     const handleTableUpdated = (updated: Table) => {
       setTables((prev) =>
@@ -102,7 +133,7 @@ export default function Home() {
         setTables((prev) =>
           prev.map((t) =>
             t.id === booking.table_id 
-              ? { ...t, status: 'reserved' } 
+              ? { ...t, status: 'reserved' as TableStatus }
               : t
           )
         );
@@ -135,7 +166,7 @@ export default function Home() {
       }
       
       if (updated.table_id) {
-        let newStatus = 'available';
+        let newStatus: TableStatus = 'available';
         if (updated.status === 'checked_in') newStatus = 'occupied';
         else if (updated.status === 'confirmed') newStatus = 'reserved';
         else if (updated.status === 'completed') newStatus = 'available';
@@ -144,7 +175,7 @@ export default function Home() {
         setTables((prev) =>
           prev.map((t) =>
             t.id === updated.table_id 
-              ? { ...t, status: newStatus } 
+              ? { ...t, status: newStatus }
               : t
           )
         );
@@ -177,7 +208,7 @@ export default function Home() {
         setTables((prev) =>
           prev.map((t) =>
             t.id === booking.table_id 
-              ? { ...t, status: 'available' } 
+              ? { ...t, status: 'available' as TableStatus }
               : t
           )
         );
@@ -239,8 +270,8 @@ export default function Home() {
       icon: BiTable,
       color: 'bg-blue-500 dark:bg-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      textColor: 'text-blue-600 dark:text-blue-400',
-      link: '/tables'
+      textColor: 'text-blue-600 dark:text-macchiato-blue',
+      link: '/admin/tables'
     },
     {
       title: 'Bàn trống',
@@ -248,8 +279,8 @@ export default function Home() {
       icon: BiTable,
       color: 'bg-green-500 dark:bg-green-600',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
-      textColor: 'text-green-600 dark:text-green-400',
-      link: '/tables'
+      textColor: 'text-green-600 dark:text-macchiato-green',
+      link: '/admin/tables'
     },
     {
       title: 'Đang chơi',
@@ -257,8 +288,8 @@ export default function Home() {
       icon: BiPlay,
       color: 'bg-red-500 dark:bg-red-600',
       bgColor: 'bg-red-50 dark:bg-red-900/20',
-      textColor: 'text-red-600 dark:text-red-400',
-      link: '/tables'
+      textColor: 'text-red-600 dark:text-macchiato-red',
+      link: '/admin/tables'
     },
     {
       title: 'Đã đặt',
@@ -266,8 +297,8 @@ export default function Home() {
       icon: BiCalendar,
       color: 'bg-yellow-500 dark:bg-yellow-600',
       bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-      textColor: 'text-yellow-600 dark:text-yellow-400',
-      link: '/bookings'
+      textColor: 'text-yellow-600 dark:text-macchiato-yellow',
+      link: '/admin/bookings'
     },
     {
       title: 'Đặt bàn hôm nay',
@@ -275,8 +306,8 @@ export default function Home() {
       icon: BiCalendar,
       color: 'bg-purple-500 dark:bg-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-      textColor: 'text-purple-600 dark:text-purple-400',
-      link: '/bookings'
+      textColor: 'text-purple-600 dark:text-macchiato-lavender',
+      link: '/admin/bookings'
     },
     {
       title: 'Doanh thu hôm nay',
@@ -284,10 +315,30 @@ export default function Home() {
       icon: BiDollar,
       color: 'bg-yellow-500 dark:bg-yellow-600',
       bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-      textColor: 'text-yellow-600 dark:text-yellow-400',
-      link: '/reports'
+      textColor: 'text-yellow-600 dark:text-macchiato-yellow',
+      link: '/admin/reports'
     },
   ];
+
+  const getStatusColor = (status: BookingStatus) => {
+    switch (status) {
+      case 'completed': return 'text-green-600 dark:text-macchiato-green bg-green-50 dark:bg-green-900/20';
+      case 'checked_in': return 'text-blue-600 dark:text-macchiato-blue bg-blue-50 dark:bg-blue-900/20';
+      case 'confirmed': return 'text-yellow-600 dark:text-macchiato-yellow bg-yellow-50 dark:bg-yellow-900/20';
+      case 'cancelled': return 'text-red-600 dark:text-macchiato-red bg-red-50 dark:bg-red-900/20';
+      default: return 'text-gray-600 dark:text-macchiato-subtext bg-gray-50 dark:bg-gray-900/20';
+    }
+  };
+
+  const getStatusText = (status: BookingStatus) => {
+    switch (status) {
+      case 'completed': return 'Hoàn thành';
+      case 'checked_in': return 'Đang chơi';
+      case 'confirmed': return 'Đã đặt';
+      case 'cancelled': return 'Đã hủy';
+      default: return status;
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -317,11 +368,11 @@ export default function Home() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Access */}
-        <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-macchiato-surface rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text mb-4">Truy cập nhanh</h2>
           <div className="space-y-3">
             <Link
-              href="/tables"
+              href="/admin/tables"
               className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors group"
             >
               <BiTable className="h-6 w-6 text-blue-600 dark:text-macchiato-blue" />
@@ -331,7 +382,7 @@ export default function Home() {
               </div>
             </Link>
             <Link
-              href="/bookings"
+              href="/admin/bookings"
               className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group"
             >
               <BiCalendar className="h-6 w-6 text-green-600 dark:text-macchiato-green" />
@@ -341,7 +392,7 @@ export default function Home() {
               </div>
             </Link>
             <Link
-              href="/products"
+              href="/admin/products"
               className="flex items-center space-x-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors group"
             >
               <BiCoffee className="h-6 w-6 text-orange-600 dark:text-macchiato-peach" />
@@ -354,10 +405,10 @@ export default function Home() {
         </div>
 
         {/* Recent Bookings */}
-        <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-macchiato-surface rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text">Đặt bàn gần đây</h2>
-            <Link href="/bookings" className="text-sm text-primary-600 dark:text-macchiato-blue hover:underline">
+            <Link href="/admin/bookings" className="text-sm text-primary-600 dark:text-macchiato-blue hover:underline">
               Xem tất cả
             </Link>
           </div>
@@ -372,72 +423,50 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {recentBookings.map((booking) => {
-                const getStatusColor = () => {
-                  switch (booking.status) {
-                    case 'completed': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
-                    case 'checked_in': return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
-                    case 'confirmed': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
-                    case 'cancelled': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
-                    default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20';
-                  }
-                };
-
-                const getStatusText = () => {
-                  switch (booking.status) {
-                    case 'completed': return 'Hoàn thành';
-                    case 'checked_in': return 'Đang chơi';
-                    case 'confirmed': return 'Đã đặt';
-                    case 'cancelled': return 'Đã hủy';
-                    default: return booking.status;
-                  }
-                };
-
-                return (
-                  <div key={booking.id}>
-                    <div className="flex items-center justify-between p-3 border border-gray-100 dark:border-macchiato-surface rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-gray-100 dark:bg-macchiato-surface p-2 rounded-full">
-                          <BiUser className="h-4 w-4 text-gray-500 dark:text-macchiato-subtext" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-macchiato-text">{booking.customer_name}</p>
-                          <p className="text-sm text-gray-500 dark:text-macchiato-subtext">
-                            {booking.table_name || `Bàn #${booking.table_id}`} - {formatDateTime(booking.start_time)}
-                          </p>
-                        </div>
+              {recentBookings.map((booking) => (
+                <div key={booking.id}>
+                  <div className="flex items-center justify-between p-3 border border-gray-100 dark:border-macchiato-mantle rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-gray-100 dark:bg-macchiato-mantle p-2 rounded-full">
+                        <BiUser className="h-4 w-4 text-gray-500 dark:text-macchiato-subtext" />
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-green-600 dark:text-macchiato-green">
-                          {formatCurrency(booking.total_amount || 0)}
-                        </p>
-                        <p className={`text-xs px-2 py-1 rounded-full mt-1 ${getStatusColor()}`}>
-                          {getStatusText()}
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-macchiato-text">{booking.customer_name}</p>
+                        <p className="text-sm text-gray-500 dark:text-macchiato-subtext">
+                          {booking.table_name || `Bàn #${booking.table_id}`} - {formatDateTime(booking.start_time)}
                         </p>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-green-600 dark:text-macchiato-green">
+                        {formatCurrency(booking.total_amount || 0)}
+                      </p>
+                      <p className={`text-xs px-2 py-1 rounded-full mt-1 ${getStatusColor(booking.status)}`}>
+                        {getStatusText(booking.status)}
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
       </div>
 
       {/* Table Status Summary */}
-      <div className="bg-white dark:bg-macchiato-base rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-macchiato-surface rounded-lg shadow-md p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-macchiato-text mb-4">Tình trạng bàn</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{availableTables}</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-macchiato-green">{availableTables}</p>
             <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Trống</p>
           </div>
           <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{occupiedTables}</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-macchiato-red">{occupiedTables}</p>
             <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Đang chơi</p>
           </div>
           <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{reservedTables}</p>
+            <p className="text-2xl font-bold text-yellow-600 dark:text-macchiato-yellow">{reservedTables}</p>
             <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Đã đặt</p>
           </div>
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
@@ -445,7 +474,7 @@ export default function Home() {
             <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Tổng số</p>
           </div>
           <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{todayCompleted}</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-macchiato-lavender">{todayCompleted}</p>
             <p className="text-sm text-gray-600 dark:text-macchiato-subtext">Đã kết thúc</p>
           </div>
         </div>
