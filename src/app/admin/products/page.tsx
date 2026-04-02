@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { useToast } from '@/hooks/useToast';
 import { BiPlus, BiEdit, BiTrash, BiSearch } from 'react-icons/bi';
@@ -14,7 +14,9 @@ interface Product {
   price: number;
   category_id: number;
   category_name: string;
-  status: string;
+  is_available: boolean;  // boolean, không phải number
+  stock: number;
+  image_url?: string;
 }
 
 interface Category {
@@ -22,7 +24,7 @@ interface Category {
   name: string;
   description: string;
   sort_order: number;
-  is_active: number;
+  is_active: boolean;  // boolean
 }
 
 export default function ProductsPage() {
@@ -35,7 +37,6 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   
-  // Modal states
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -48,7 +49,6 @@ export default function ProductsPage() {
     }
   }, [socket, isConnected]);
 
-  // Listen for real-time updates
   useEffect(() => {
     if (!socket) return;
 
@@ -99,22 +99,22 @@ export default function ProductsPage() {
     };
   }, [socket, success]);
 
-  const loadProducts = () => {
+  const loadProducts = useCallback(() => {
     socket?.emit('get-products', {}, (res: any) => {
       if (res.success) {
         setProducts(res.data);
       }
       setLoading(false);
     });
-  };
+  }, [socket]);
 
-  const loadCategories = () => {
+  const loadCategories = useCallback(() => {
     socket?.emit('get-categories', {}, (res: any) => {
       if (res.success) {
         setCategories(res.data);
       }
     });
-  };
+  }, [socket]);
 
   const handleCreateProduct = (data: any) => {
     socket?.emit('create-product', data, (res: any) => {
@@ -239,7 +239,7 @@ export default function ProductsPage() {
           >
             Tất cả
           </button>
-          {categories.map((cat) => (
+          {categories.filter(c => c.is_active === true).map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
@@ -302,12 +302,12 @@ export default function ProductsPage() {
                     </p>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-  product.is_available === 1 
-    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-    : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext'
-}`}>
-  {product.is_available === 1 ? '✅ Đang bán' : '❌ Ngừng bán'}
-</span>
+                    product.is_available === true
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                      : 'bg-gray-100 dark:bg-macchiato-surface text-gray-700 dark:text-macchiato-subtext'
+                  }`}>
+                    {product.is_available === true ? '✅ Đang bán' : '❌ Ngừng bán'}
+                  </span>
                 </div>
                 
                 {product.description && (
@@ -317,9 +317,16 @@ export default function ProductsPage() {
                 )}
                 
                 <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-macchiato-surface">
-                  <span className="text-xl font-bold text-primary-600 dark:text-macchiato-blue">
-                    {product.price.toLocaleString('vi-VN')}đ
-                  </span>
+                  <div>
+                    <span className="text-xl font-bold text-primary-600 dark:text-macchiato-blue">
+                      {product.price.toLocaleString('vi-VN')}đ
+                    </span>
+                    {product.stock !== undefined && product.stock < 10 && (
+                      <p className="text-xs text-orange-500 mt-1">
+                        Còn {product.stock} sản phẩm
+                      </p>
+                    )}
+                  </div>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => {
@@ -346,7 +353,6 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Modals */}
       <ProductModal
         isOpen={isProductModalOpen}
         onClose={() => {

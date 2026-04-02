@@ -15,6 +15,7 @@ import {
   BiWifiOff
 } from 'react-icons/bi';
 import { useSocket } from '@/hooks/useSocket';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 
 export default function Header() {
   const pathname = usePathname();
@@ -135,6 +136,11 @@ export default function Header() {
 
             {/* Right Section */}
             <div className="flex items-center space-x-3">
+              {/* Theme Toggle - Thêm vào đây */}
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
+
               {/* Connection Status */}
               <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-white/50 dark:bg-macchiato-mantle/50 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50">
                 {isConnected ? (
@@ -203,7 +209,9 @@ export default function Header() {
                     <p className="text-xs text-gray-500">Khách hàng thân thiết</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-2">
+                  {/* Theme Toggle cho mobile */}
+                  <ThemeToggle />
                   {isConnected ? (
                     <BiWifi className="h-4 w-4 text-green-500" />
                   ) : (
