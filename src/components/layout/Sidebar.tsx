@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  BiBasketball,
   BiCalendar,
   BiTable,
   BiFoodMenu,
@@ -23,7 +22,11 @@ const navigation = [
   { name: 'Sản phẩm', href: '/admin/products', icon: BiFoodMenu }
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  onCollapsedChange?: (isCollapsed: boolean) => void;
+}
+
+export default function Sidebar({ onCollapsedChange }: SidebarProps) {
   const { logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -31,6 +34,11 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // Notify parent when collapse state changes
+  useEffect(() => {
+    onCollapsedChange?.(isCollapsed);
+  }, [isCollapsed, onCollapsedChange]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -84,18 +92,13 @@ export default function Sidebar() {
         className={`fixed left-0 top-0 h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-700 shadow-md transition-all duration-300 z-50 flex flex-col
         ${sidebarWidth} ${!isVisible && 'hidden'}`}
       >
-        {/* Logo */}
+        {/* Logo / Title */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           {(!isCollapsed || isMobile) ? (
-            <Link href="/admin" className="flex items-center space-x-2">
-              <BiBasketball className="h-7 w-7 text-black dark:text-white" />
-              <span className="font-semibold text-black dark:text-white">
-                Billiard Manager
-              </span>
-            </Link>
-          ) : (
-            <BiBasketball className="h-7 w-7 text-black dark:text-white mx-auto" />
-          )}
+            <span className="font-semibold text-black dark:text-white text-lg">
+              Billiard Manager
+            </span>
+          ) : null}
 
           <button
             onClick={toggleSidebar}

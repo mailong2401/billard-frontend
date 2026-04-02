@@ -9,7 +9,7 @@ interface User {
   username: string;
   email: string;
   full_name: string;
-  phone: string;        // ← Thêm dòng này
+  phone: string;
   role: 'admin' | 'client';
   is_active: boolean;
 }
@@ -31,6 +31,10 @@ interface RegisterData {
   phone?: string;
 }
 
+const TOKEN_KEY = 'token';
+const TOKEN_EXPIRY_KEY = 'token_expiry';
+const TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 ngày
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -47,15 +51,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Kiểm tra token có hết hạn không
+  const isTokenExpired = (): boolean => {
+    const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    if (!expiry) return true;
+    return parseInt(expiry) < Date.now();
+  };
+
+  // Lấy user từ token
+  const fetchCurrentUser = async (token: string) => {
+    try {
+      const socket = getSocket();
+      
+      // Timeout sau 5 giây
+      const timeout = setTimeout(() => {
+        console.error('Fetch user timeout');
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_EXPIRY_KEY);
+        setIsLoading(false);
+      }, 5000);
+
+      socket.emit('get-current-user', { token }, (res: any) => {
+        clearTimeout(timeout);
+        
+        if (res.success) {
+          setUser(res.data);
+        } else {
+          console.error('Token invalid:', res.error);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(TOKEN_EXPIRY_KEY);
+        }
+        setIsLoading(false);
+      });
+    } catch (error) {
+      console.error('Failed to fetch user:', error);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_EXPIRY_KEY);
+      setIsLoading(false);
+    }
+  };
+
   // Check token on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    
+    if (token && !isTokenExpired()) {
       fetchCurrentUser(token);
     } else {
+      if (token) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_EXPIRY_KEY);
+      }
       setIsLoading(false);
     }
   }, []);
+
+  // Auto logout khi token hết hạn
+  useEffect(() => {
+    if (!user) return;
+
+    const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    if (expiry) {
+      const timeLeft = parseInt(expiry) - Date.now();
+      if (timeLeft <= 0) {
+        logout();
+      } else {
+        const timer = setTimeout(() => {
+          logout();
+        }, timeLeft);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user]);
 
   // Redirect based on role
   useEffect(() => {
@@ -78,30 +145,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, isLoading, pathname, router]);
 
-  const fetchCurrentUser = async (token: string) => {
-    try {
-      const socket = getSocket();
-      socket.emit('get-current-user', { token }, (res: any) => {
-        if (res.success) {
-          setUser(res.data);
-        } else {
-          localStorage.removeItem('token');
-        }
-        setIsLoading(false);
-      });
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      localStorage.removeItem('token');
-      setIsLoading(false);
-    }
-  };
-
   const login = async (username: string, password: string) => {
     return new Promise<void>((resolve, reject) => {
       const socket = getSocket();
       socket.emit('login', { username, password }, (res: any) => {
         if (res.success) {
-          localStorage.setItem('token', res.data.token);
+          // Lưu token và thời gian hết hạn
+          localStorage.setItem(TOKEN_KEY, res.data.token);
+          localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + TOKEN_DURATION));
           setUser(res.data.user);
           resolve();
         } else {
@@ -112,7 +163,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_EXPIRY_KEY);
     setUser(null);
     router.push('/auth/login');
   };
@@ -122,7 +174,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const socket = getSocket();
       socket.emit('register', data, (res: any) => {
         if (res.success) {
-          localStorage.setItem('token', res.data.token);
+          localStorage.setItem(TOKEN_KEY, res.data.token);
+          localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + TOKEN_DURATION));
           setUser(res.data.user);
           resolve();
         } else {
