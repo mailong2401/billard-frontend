@@ -5,6 +5,7 @@ import { Table } from '@/types';
 import { TABLE_STATUS, TABLE_TYPE } from '@/utils/constants';
 import { formatCurrency } from '@/utils/formatters';
 import { BiEdit, BiTrash, BiCalendar, BiPlay, BiStopwatch, BiTime, BiCoffee } from 'react-icons/bi';
+import PlayDirectModal from "@/components/admin/tables/PlayDirectModal"
 
 interface TableCardProps {
   table: Table;
@@ -24,6 +25,7 @@ interface TableCardProps {
     customer_phone?: string;
     food_total?: number;
     total_amount?: number;
+    items_count?: number;
   } | null;
 }
 
@@ -56,9 +58,6 @@ const TableCard = memo(function TableCard({
   const [currentAmount, setCurrentAmount] = useState(activeBooking?.current_amount || 0);
   const [hoursPlayed, setHoursPlayed] = useState(activeBooking?.hours_played || 0);
   const [showPlayDirectModal, setShowPlayDirectModal] = useState(false);
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [localFoodTotal, setLocalFoodTotal] = useState(activeBooking?.food_total || 0);
   const [durationText, setDurationText] = useState('00:00');
 
   // Update local state when activeBooking changes
@@ -66,7 +65,6 @@ const TableCard = memo(function TableCard({
     if (activeBooking) {
       setCurrentAmount(activeBooking.current_amount || 0);
       setHoursPlayed(activeBooking.hours_played || 0);
-      setLocalFoodTotal(activeBooking.food_total || 0);
     }
   }, [activeBooking]);
 
@@ -96,18 +94,16 @@ const TableCard = memo(function TableCard({
   const isReserved = table.status === 'reserved';
   const isAvailable = table.status === 'available';
 
-  const handlePlayDirect = () => {
-    if (customerName && customerPhone) {
-      onPlayDirect?.(table, customerName, customerPhone);
-      setShowPlayDirectModal(false);
-      setCustomerName('');
-      setCustomerPhone('');
-    }
+  // Hàm xử lý submit từ modal PlayDirect
+  const handlePlayDirectSubmit = (customerName: string, customerPhone: string) => {
+    onPlayDirect?.(table, customerName, customerPhone);
+    setShowPlayDirectModal(false);
   };
 
   const tableAmount = currentAmount;
-  const foodAmount = localFoodTotal || activeBooking?.food_total || 0;
+  const foodAmount = activeBooking?.food_total || 0;
   const totalCurrentAmount = tableAmount + foodAmount;
+  const itemsCount = activeBooking?.items_count || 0;
 
   const getStatusColor = (statusCode: string) => {
     const colors: Record<string, string> = {
@@ -120,10 +116,17 @@ const TableCard = memo(function TableCard({
     return colors[statusCode] || colors.available;
   };
 
+  // Format start time
+  const formatStartTime = (startTime: string) => {
+    if (!startTime) return 'Chưa có';
+    return new Date(startTime).toLocaleTimeString('vi-VN');
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-black rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-800">
         <div className="p-5">
+          {/* Header: Tên bàn và trạng thái */}
           <div className="flex justify-between items-start mb-3">
             <div>
               <h3 className="text-lg font-semibold text-black dark:text-white">
@@ -136,6 +139,7 @@ const TableCard = memo(function TableCard({
             </span>
           </div>
 
+          {/* Thông tin cơ bản của bàn */}
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Loại bàn:</span>
@@ -153,67 +157,39 @@ const TableCard = memo(function TableCard({
                 <span className="font-medium text-black dark:text-white">{table.location}</span>
               </div>
             )}
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600 dark:text-gray-400">Thời gian đã chơi:</span>
+              <span className="font-medium text-black dark:text-white">{durationText}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600 dark:text-gray-400">Thời gian bắt đầu:</span>
+              <span className="font-medium text-black dark:text-white">
+                {activeBooking ? formatStartTime(activeBooking.start_time) : "00:00"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Tiền bàn:</span>
+              <span className="text-sm font-medium text-black dark:text-white">
+                {formatCurrency(tableAmount)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Tiền đồ ăn/uống:</span>
+              <span className="text-sm font-medium text-black dark:text-white">
+                {foodAmount > 0 ? formatCurrency(foodAmount) : '0 ₫'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+              <span className="text-sm font-semibold text-black dark:text-white">Tổng cộng:</span>
+              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(totalCurrentAmount)}
+              </span>
+            </div>
           </div>
 
-          {isPlaying && activeBooking && (
-            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <BiTime className="text-red-600 dark:text-red-400" />
-                  <span className="text-sm font-medium text-red-600 dark:text-red-400">Đang chơi</span>
-                </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Bắt đầu: {new Date(activeBooking.start_time).toLocaleTimeString()}
-                </span>
-              </div>
-              {activeBooking.customer_name && (
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                  Khách: {activeBooking.customer_name} - {activeBooking.customer_phone}
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center mb-2">
-                <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Thời gian đã chơi</p>
-                  <p className="text-lg font-bold text-black dark:text-white">
-                    {durationText}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Tiền bàn</p>
-                  <p className="text-lg font-bold text-black dark:text-white">
-                    {formatCurrency(tableAmount)}
-                  </p>
-                </div>
-              </div>
-
-              {foodAmount > 0 && (
-                <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-800">
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Tiền đồ ăn/uống</p>
-                    <p className="text-lg font-bold text-black dark:text-white">
-                      {formatCurrency(foodAmount)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Tổng cộng</p>
-                    <p className="text-lg font-bold text-black dark:text-white">
-                      {formatCurrency(totalCurrentAmount)}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {foodAmount === 0 && (
-                <div className="text-center pt-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Chưa có đồ ăn/uống</p>
-                </div>
-              )}
-            </div>
-          )}
-
+          {/* Các nút chức năng */}
           <div className="flex space-x-2">
-            {/* Play ngay button - style giống nút kết thúc */}
+            {/* Play ngay button */}
             {isAvailable && onPlayDirect && (
               <button
                 onClick={() => setShowPlayDirectModal(true)}
@@ -224,19 +200,18 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
-            {/* Đặt bàn - giữ nguyên */}
+            {/* Đặt bàn */}
             {isAvailable && (
               <button
                 onClick={() => onBook(table)}
-                                  className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-
+                className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 title="Đặt bàn"
               >
                 <BiCalendar className="h-4 w-4" />
               </button>
             )}
 
-            {/* Play button (khi có reservation) - style giống nút kết thúc */}
+            {/* Play button (khi có reservation) */}
             {isReserved && onPlay && (
               <button
                 onClick={() => onPlay(table, 0)}
@@ -247,7 +222,7 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
-            {/* Gọi đồ - giữ nguyên */}
+            {/* Gọi đồ */}
             {isPlaying && onOrder && activeBooking && (
               <button
                 onClick={() => onOrder(table, activeBooking.id)}
@@ -258,7 +233,7 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
-            {/* Kết thúc - giữ nguyên */}
+            {/* Kết thúc */}
             {isPlaying && onEnd && activeBooking && (
               <button
                 onClick={() => onEnd(table, activeBooking.id)}
@@ -269,18 +244,19 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
+            {/* Sửa và Xóa */}
             {!isPlaying && (
               <>
                 <button
                   onClick={() => onEdit(table)}
-                className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   title="Sửa"
                 >
                   <BiEdit className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => onDelete(table.id)}
-                className="px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-black border border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   title="Xóa"
                 >
                   <BiTrash className="h-4 w-4" />
@@ -291,71 +267,14 @@ const TableCard = memo(function TableCard({
         </div>
       </div>
 
-      {/* Modal nhập thông tin khách cho Play ngay */}
+      {/* Play Direct Modal */}
       {showPlayDirectModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-black rounded-lg shadow-xl max-w-md w-full mx-4 border border-gray-200 dark:border-gray-800">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-                🎱 Play ngay - {table.table_name}
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tên khách hàng <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white"
-                    placeholder="Nhập tên khách hàng"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Số điện thoại <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white"
-                    placeholder="Nhập số điện thoại"
-                  />
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    💰 Giá: <span className="font-semibold text-black dark:text-white">{formatCurrency(table.price_per_hour)} VNĐ</span>/giờ
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    ⏱️ Thời gian sẽ được tính từ lúc bắt đầu (tính theo giờ, làm tròn lên)
-                  </p>
-                </div>
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    onClick={() => setShowPlayDirectModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    onClick={handlePlayDirect}
-                    disabled={!customerName || !customerPhone}
-                    className={`flex-1 px-4 py-2 rounded-md text-white transition-all hover:scale-[1.02] active:scale-95 ${
-                      customerName && customerPhone
-                        ? 'bg-emerald-600 hover:bg-emerald-700'
-                        : 'bg-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    Bắt đầu chơi
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PlayDirectModal
+          isOpen={showPlayDirectModal}
+          onClose={() => setShowPlayDirectModal(false)}
+          table={table}
+          onSubmit={handlePlayDirectSubmit}
+        />
       )}
     </>
   );
