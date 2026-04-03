@@ -46,7 +46,6 @@ export default function Header() {
   const navItems = [
     { href: '/client', label: 'Trang chủ', icon: BiHome },
     { href: '/client/tables', label: 'Bàn', icon: BiTable },
-    { href: '/client/booking', label: 'Đặt bàn', icon: BiCalendar },
     { href: '/client/menu', label: 'Menu', icon: BiCoffee },
     { href: '/client/profile', label: 'Hồ sơ', icon: BiUser },
   ];

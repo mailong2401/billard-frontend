@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 interface Booking {
   id: number;
   booking_code: string;
-  table_id: number;           // ← Thêm dòng này
+  table_id: number;
   table_name: string;
   start_time: string;
   end_time: string;
@@ -96,7 +96,10 @@ export default function ClientProfile() {
   }
 
   const completedBookings = bookings.filter(b => b.status === 'completed');
-  const totalSpent = completedBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
+  const totalSpent = completedBookings.reduce((sum, b) => {
+  const amount = Number(b.total_amount);
+  return sum + (isNaN(amount) ? 0 : amount);
+}, 0);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">

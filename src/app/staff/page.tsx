@@ -1,18 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Table } from '@/types';
-import { BiPlay, BiCoffee, BiSearch, BiLogOut, BiCalendar } from 'react-icons/bi';
+import { BiPlay, BiCoffee, BiSearch, BiCalendar } from 'react-icons/bi';
 import OrderPanel from '@/components/admin/tables/OrderPanel';
 import PlayDirectModal from '@/components/admin/tables/PlayDirectModal';
 import BookingForm from '@/components/admin/bookings/BookingForm';
-import ThemeToggle from '@/components/layout/ThemeToggle';
 
-// Helper: Chuyển đổi string datetime sang Date object
+// Helper functions (giữ nguyên)
 const parseDateTime = (dateStr: string): Date => {
   if (!dateStr) return new Date();
   const [datePart, timePart] = dateStr.split(' ');
@@ -38,9 +36,7 @@ const formatDuration = (hours: number): string => {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
+  if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
@@ -48,7 +44,6 @@ const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
 };
 
-// Helper an toàn để lấy số
 const safeNumber = (value: any): number => {
   const num = Number(value);
   return isNaN(num) ? 0 : num;
@@ -65,8 +60,7 @@ interface TableWithBooking extends Table {
 export default function StaffPage() {
   const { socket, isConnected } = useSocket();
   const { success, error } = useToast();
-  const { logout, user } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
 
   const [tables, setTables] = useState<TableWithBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,11 +87,6 @@ export default function StaffPage() {
     total_amount?: number;
   }>>(new Map());
 
-  const handleLogout = () => {
-    logout();
-    router.push('/auth/login');
-  };
-
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -106,10 +95,8 @@ export default function StaffPage() {
   const loadTables = useCallback(() => {
     socket?.emit('get-tables-full', {}, (res: any) => {
       if (!isMounted.current) return;
-
       if (res.success) {
         setTables(res.data);
-        
         const bookingsMap = new Map();
         res.data.forEach((table: any) => {
           if (table.booking_id) {
@@ -117,14 +104,11 @@ export default function StaffPage() {
             const now = new Date();
             let hoursPlayed = 0;
             let currentAmount = 0;
-            
-            // Chỉ tính thời gian nếu bàn đang occupied
             if (table.status === 'occupied' && startTime) {
               const diffMs = now.getTime() - startTime.getTime();
               hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
               currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
             }
-            
             bookingsMap.set(table.id, {
               id: table.booking_id,
               start_time: table.start_time,
@@ -160,7 +144,6 @@ export default function StaffPage() {
   useEffect(() => {
     if (!socket || !isClient) return;
     if (realtimeInterval.current) clearInterval(realtimeInterval.current);
-
     realtimeInterval.current = setInterval(() => {
       setActiveBookings(prev => {
         const newMap = new Map(prev);
@@ -168,13 +151,11 @@ export default function StaffPage() {
           if (!booking?.start_time) return;
           const table = tables.find(t => t.id === tableId);
           if (!table) return;
-          
           const startTime = parseDateTime(booking.start_time);
           const now = new Date();
           const diffMs = now.getTime() - startTime.getTime();
           const hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
           const currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
-          
           newMap.set(tableId, {
             ...booking,
             current_amount: currentAmount,
@@ -185,21 +166,48 @@ export default function StaffPage() {
         return newMap;
       });
     }, 1000);
-
     return () => {
       if (realtimeInterval.current) clearInterval(realtimeInterval.current);
     };
   }, [socket, isClient, tables]);
 
+  // ================= REALTIME TABLE UPDATES =================
+  useEffect(() => {
+    if (!socket || !isClient) return;
+    const handleTableCreated = (newTable: any) => {
+      setTables(prev => [newTable, ...prev]);
+      success(`Bàn mới "${newTable.table_name}" đã được thêm`);
+    };
+    const handleTableUpdated = (updatedTable: any) => {
+      setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
+      success(`Bàn "${updatedTable.table_name}" đã được cập nhật`);
+    };
+    const handleTableDeleted = ({ tableId }: { tableId: number }) => {
+      setTables(prev => prev.filter(t => t.id !== tableId));
+      success(`Bàn đã được xóa`);
+    };
+    const handleTableStatusChanged = (updatedTable: any) => {
+      setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
+    };
+    socket.on('table-created', handleTableCreated);
+    socket.on('table-updated', handleTableUpdated);
+    socket.on('table-deleted', handleTableDeleted);
+    socket.on('table-status-changed', handleTableStatusChanged);
+    return () => {
+      socket.off('table-created', handleTableCreated);
+      socket.off('table-updated', handleTableUpdated);
+      socket.off('table-deleted', handleTableDeleted);
+      socket.off('table-status-changed', handleTableStatusChanged);
+    };
+  }, [socket, isClient, success]);
+
   // ================= ACTIONS =================
   const handlePlayDirectSubmit = (customerName: string, customerPhone: string) => {
     if (!selectedTable) return;
-    
     const startTime = getVietnamTime();
     const startDate = parseDateTime(startTime);
     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
     const endTime = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')} ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:${String(endDate.getSeconds()).padStart(2, '0')}`;
-    
     const bookingData = {
       table_id: selectedTable.id,
       customer_name: customerName,
@@ -210,7 +218,6 @@ export default function StaffPage() {
       total_amount: 0,
       notes: 'Play ngay'
     };
-    
     socket?.emit('create-booking', bookingData, (res: any) => {
       if (res.success) {
         const bookingId = res.data.id;
@@ -262,8 +269,8 @@ export default function StaffPage() {
 
   if (!isClient || !isConnected || loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
+      <div className="min-h-screen bg-white dark:bg-black">
+        <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
         </div>
@@ -281,30 +288,6 @@ export default function StaffPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       <div className="container mx-auto px-4 py-8">
-        {/* Header với ThemeToggle và Logout */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-black dark:text-white">Quản lý bàn - Nhân viên</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Play ngay, đặt bàn và gọi món</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {user.full_name || user.username}
-              </span>
-            )}
-            <ThemeToggle />
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all hover:scale-[1.02] active:scale-95"
-              title="Đăng xuất"
-            >
-              <BiLogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Đăng xuất</span>
-            </button>
-          </div>
-        </div>
-
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
@@ -369,7 +352,6 @@ export default function StaffPage() {
                       </span>
                     </div>
 
-                    {/* Thông tin bàn */}
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Giá:</span>
@@ -425,7 +407,6 @@ export default function StaffPage() {
                       )}
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex space-x-2">
                       {isAvailable && (
                         <>

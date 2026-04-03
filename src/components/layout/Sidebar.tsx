@@ -10,6 +10,7 @@ import {
   BiChevronLeft,
   BiChevronRight,
   BiHome,
+  BiUser,
   BiLogOut
 } from 'react-icons/bi';
 import ThemeToggle from './ThemeToggle';
@@ -17,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: BiHome },
+  { name: 'Người dùng', href: '/admin/users', icon: BiUser },
   { name: 'Bàn Bi Da', href: '/admin/tables', icon: BiTable },
   { name: 'Đặt Bàn', href: '/admin/bookings', icon: BiCalendar },
   { name: 'Sản phẩm', href: '/admin/products', icon: BiFoodMenu }

@@ -34,7 +34,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleDarkMode}
-      className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-macchiato-surface"
+      className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
       title={darkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
     >
       {darkMode ? (

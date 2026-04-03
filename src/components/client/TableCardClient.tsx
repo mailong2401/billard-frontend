@@ -15,9 +15,10 @@ interface TableCardClientProps {
     status: string;
     location?: string;
   };
+  onBook?: () => void;  // Thêm prop onBook
 }
 
-export default function TableCardClient({ table }: TableCardClientProps) {
+export default function TableCardClient({ table, onBook }: TableCardClientProps) {
   const [showBookingModal, setShowBookingModal] = useState(false);
 
   const getTableTypeLabel = (type: string) => {
@@ -40,16 +41,14 @@ export default function TableCardClient({ table }: TableCardClientProps) {
 
   return (
     <>
-        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 hover:scale-[1.02]">
+      <div className="bg-white dark:bg-black rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-200 dark:border-gray-800">
         <div className="p-5">
           <div className="flex justify-between items-start mb-3">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-black dark:text-white">
                 {table.table_name}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {table.table_number}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{table.table_number}</p>
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTableTypeColor(table.table_type)}`}>
               {getTableTypeLabel(table.table_type)}
@@ -58,21 +57,19 @@ export default function TableCardClient({ table }: TableCardClientProps) {
 
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-600 dark:text-slate-400">Giá:</span>
-              <span className="font-medium text-sky-600 dark:text-sky-400">
+              <span className="text-gray-600 dark:text-gray-400">Giá:</span>
+              <span className="font-medium text-black dark:text-white">
                 {formatCurrency(table.price_per_hour)} / giờ
               </span>
             </div>
             {table.location && (
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-400">Vị trí:</span>
-                <span className="font-medium text-slate-900 dark:text-white">
-                  {table.location}
-                </span>
+                <span className="text-gray-600 dark:text-gray-400">Vị trí:</span>
+                <span className="font-medium text-black dark:text-white">{table.location}</span>
               </div>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-slate-600 dark:text-slate-400">Trạng thái:</span>
+              <span className="text-gray-600 dark:text-gray-400">Trạng thái:</span>
               <span className={`font-medium ${isAvailable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                 {isAvailable ? 'Trống' : 'Đang sử dụng'}
               </span>
@@ -81,26 +78,17 @@ export default function TableCardClient({ table }: TableCardClientProps) {
 
           <div className="flex space-x-2">
             {isAvailable ? (
-              <>
-                <Link
-                  href={`/client/booking?tableId=${table.id}`}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white transition-all duration-200 hover:scale-[1.02] active:scale-95"
-                >
-                  <BiCalendar className="h-4 w-4" />
-                  <span>Đặt bàn</span>
-                </Link>
-                <Link
-                  href={`/client/play?tableId=${table.id}`}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200 hover:scale-[1.02] active:scale-95"
-                >
-                  <BiPlay className="h-4 w-4" />
-                  <span>Play ngay</span>
-                </Link>
-              </>
+              <button
+                onClick={onBook}
+                className="w-full flex items-center justify-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white transition-all duration-200 hover:scale-[1.02] active:scale-95"
+              >
+                <BiCalendar className="h-4 w-4" />
+                <span>Đặt bàn</span>
+              </button>
             ) : (
               <button
                 disabled
-                className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
               >
                 Đang sử dụng
               </button>
