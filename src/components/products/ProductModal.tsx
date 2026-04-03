@@ -53,15 +53,41 @@ export default function ProductModal({
     e.preventDefault();
     onSubmit({
       ...formData,
-      price: Number(formData.price),
+      price: Number(formData.price) || 0,
       category_id: Number(formData.category_id),
-      stock: Number(formData.stock),
+      stock: Number(formData.stock) || 0,
       is_available: formData.is_available
     });
   };
 
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat('vi-VN').format(value);
+  };
+
+  // Xử lý thay đổi giá
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      setFormData({ ...formData, price: 0 });
+    } else {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        setFormData({ ...formData, price: numValue });
+      }
+    }
+  };
+
+  // Xử lý thay đổi stock
+  const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      setFormData({ ...formData, stock: 0 });
+    } else {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        setFormData({ ...formData, stock: numValue });
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -122,12 +148,12 @@ export default function ProductModal({
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
-                min="0"
-                step="1000"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                value={formData.price === 0 ? '' : formData.price}
+                onChange={handlePriceChange}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors pr-16"
                 placeholder="0"
               />
@@ -147,10 +173,11 @@ export default function ProductModal({
               Số lượng tồn kho
             </label>
             <input
-              type="number"
-              min="0"
-              value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={formData.stock === 0 ? '' : formData.stock}
+              onChange={handleStockChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors"
               placeholder="0"
             />

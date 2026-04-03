@@ -43,7 +43,23 @@ export default function CategoryModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      sort_order: Number(formData.sort_order) || 0
+    });
+  };
+
+  // Xử lý thay đổi sort_order
+  const handleSortOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      setFormData({ ...formData, sort_order: 0 });
+    } else {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        setFormData({ ...formData, sort_order: numValue });
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -96,11 +112,13 @@ export default function CategoryModal({
               Thứ tự sắp xếp
             </label>
             <input
-              type="number"
-              min="0"
-              value={formData.sort_order}
-              onChange={(e) => setFormData({ ...formData, sort_order: Number(e.target.value) })}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={formData.sort_order === 0 ? '' : formData.sort_order}
+              onChange={handleSortOrderChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white"
+              placeholder="0"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Số càng nhỏ càng hiển thị lên đầu

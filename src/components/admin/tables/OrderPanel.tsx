@@ -303,7 +303,7 @@ export default function OrderPanel({
     <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
       <div className="w-full max-w-5xl bg-white dark:bg-black h-full overflow-y-auto border-l border-gray-200 dark:border-gray-800">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
+        <div className="sticky top-0 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center z-10">
           <div>
             <h2 className="text-xl font-bold text-black dark:text-white">
               Đặt đồ ăn/uống
@@ -359,7 +359,7 @@ export default function OrderPanel({
                 ))}
               </div>
 
-              {/* Products Grid */}
+              {/* Products Grid - Fixed height cards */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {products
                   .filter(product => !selectedCategory || product.category_id === selectedCategory)
@@ -368,22 +368,42 @@ export default function OrderPanel({
                     <div
                       key={product.id}
                       onClick={() => addToCart(product)}
-                      className="border border-gray-300 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-black hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer"
+                      className="border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer flex flex-col h-full"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium text-black dark:text-white text-sm">{product.name}</h3>
-                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                          {toNumber(product.price).toLocaleString('vi-VN')}đ
-                        </span>
+                      <div className="p-3 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-medium text-black dark:text-white text-sm flex-1">
+                            {product.name}
+                          </h3>
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-2 shrink-0">
+                            {toNumber(product.price).toLocaleString('vi-VN')}đ
+                          </span>
+                        </div>
+                        
+                        {/* Fixed height for description */}
+                        <div className="min-h-[40px] mb-2">
+                          {product.description ? (
+                            <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">
+                              {product.description}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-300 dark:text-gray-600 italic">
+                              Không có mô tả
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Button at bottom */}
+                        <button 
+                          className="mt-auto w-full bg-black text-white dark:bg-white dark:text-black py-1.5 rounded-md border border-gray-300 dark:border-gray-600 hover:opacity-80 transition flex items-center justify-center gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product);
+                          }}
+                        >
+                          <BiPlus className="h-4 w-4" /> Thêm
+                        </button>
                       </div>
-                      {product.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 line-clamp-2">
-                          {product.description}
-                        </p>
-                      )}
-                      <button className="mt-2 w-full bg-black text-white dark:bg-white dark:text-black py-1.5 rounded-md border border-gray-300 dark:border-gray-600 hover:opacity-80 transition flex items-center justify-center gap-1">
-                        <BiPlus className="h-4 w-4" /> Thêm
-                      </button>
                     </div>
                   ))}
               </div>
@@ -391,7 +411,7 @@ export default function OrderPanel({
 
             {/* Right - Cart */}
             <div className="space-y-4">
-              <div className="bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg p-4">
+              <div className="bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg p-4 sticky top-20">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
                     <BiCart className="h-5 w-5" />
@@ -432,7 +452,9 @@ export default function OrderPanel({
                               <p className="text-sm font-medium text-black dark:text-white">
                                 {toNumber(item.subtotal).toLocaleString('vi-VN')}đ
                               </p>
-
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${statusInfo.color}`}>
+                                {statusInfo.label}
+                              </span>
                             </div>
                           </div>
                           {item.id && item.status !== 'served' && (

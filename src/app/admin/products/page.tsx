@@ -42,6 +42,16 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
+  // Helper function to format price
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
   useEffect(() => {
     if (socket && isConnected) {
       loadProducts();
@@ -285,77 +295,87 @@ export default function ProductsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <div 
-              key={product.id} 
-              className="bg-white dark:bg-black rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-200 dark:border-gray-800"
-            >
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-black dark:text-white">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {product.category_name}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    product.is_available === true
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
-                  }`}>
-                    {product.is_available === true ? 'Đang bán' : 'Ngừng bán'}
-                  </span>
-                </div>
-                
-                {product.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-                )}
-                
-                <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-                  <div>
-                    <span className="text-xl font-bold text-black dark:text-white">
-                      {product.price.toLocaleString('vi-VN')}đ
-                    </span>
-                    {product.stock !== undefined && product.stock < 10 && product.stock > 0 && (
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                        ⚠️ Còn {product.stock} sản phẩm
-                      </p>
-                    )}
-                    {product.stock === 0 && (
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                        ❌ Hết hàng
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        setEditingProduct(product);
-                        setIsProductModalOpen(true);
-                      }}
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
-                      title="Sửa"
-                    >
-                      <BiEdit className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
-                      title="Xóa"
-                    >
-                      <BiTrash className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {filteredProducts.map((product) => (
+    <div 
+      key={product.id} 
+      className="bg-white dark:bg-black rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-200 dark:border-gray-800 flex flex-col h-full"
+    >
+      <div className="p-5 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-black dark:text-white">
+              {product.name}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {product.category_name}
+            </p>
+          </div>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ml-2 ${
+            product.is_available === true
+              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+          }`}>
+            {product.is_available === true ? 'Đang bán' : 'Ngừng bán'}
+          </span>
         </div>
+        
+        {/* Fixed height for description area */}
+        <div className="min-h-[60px] mb-3">
+          {product.description ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+              {product.description}
+            </p>
+          ) : (
+            <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+              Không có mô tả
+            </p>
+          )}
+        </div>
+        
+        {/* Push bottom content to the bottom */}
+        <div className="mt-auto">
+          <div className="flex justify-between items-center pt-3 border-t border-gray-100 dark:border-gray-800">
+            <div>
+              <span className="text-xl font-bold text-black dark:text-white">
+                {formatPrice(product.price)}
+              </span>
+              {product.stock !== undefined && product.stock < 10 && product.stock > 0 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  ⚠️ Còn {product.stock} sản phẩm
+                </p>
+              )}
+              {product.stock === 0 && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  ❌ Hết hàng
+                </p>
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => {
+                  setEditingProduct(product);
+                  setIsProductModalOpen(true);
+                }}
+                className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
+                title="Sửa"
+              >
+                <BiEdit className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => handleDeleteProduct(product.id)}
+                className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
+                title="Xóa"
+              >
+                <BiTrash className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
       )}
 
       <ProductModal
