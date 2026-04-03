@@ -140,11 +140,11 @@ export default function ReportsPage() {
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
           <p className="font-semibold text-gray-900 dark:text-white">{label}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Doanh thu: <span className="font-bold text-green-600">{formatCurrency(payload[0].value)}</span>
+            Doanh thu: <span className="font-bold text-blue-600">{formatCurrency(payload[0].value)}</span>
           </p>
           {payload[1] && (
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Đặt bàn: <span className="font-bold text-blue-600">{payload[1].value}</span>
+              Đặt bàn: <span className="font-bold text-green-600">{payload[1].value}</span>
             </p>
           )}
         </div>
@@ -338,53 +338,6 @@ export default function ReportsPage() {
       </div>
 
       {/* Top Products / Additional Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-black dark:text-white mb-4">Sản phẩm bán chạy</h2>
-          <div className="space-y-3">
-            {[
-              { name: 'Coca Cola', revenue: 1250000, percentage: 25 },
-              { name: 'Bia Tiger', revenue: 980000, percentage: 20 },
-              { name: 'Khoai tây chiên', revenue: 750000, percentage: 15 },
-              { name: 'Mì tôm', revenue: 620000, percentage: 12 },
-              { name: 'Trà đào', revenue: 580000, percentage: 10 },
-            ].map((product, idx) => (
-              <div key={idx}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700 dark:text-gray-300">{product.name}</span>
-                  <span className="text-black dark:text-white font-medium">{formatCurrency(product.revenue)}</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-sky-600 h-2 rounded-full" style={{ width: `${product.percentage}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-black dark:text-white mb-4">Giờ cao điểm</h2>
-          <div className="space-y-3">
-            {[
-              { hour: '18:00 - 19:00', bookings: 45 },
-              { hour: '19:00 - 20:00', bookings: 52 },
-              { hour: '20:00 - 21:00', bookings: 48 },
-              { hour: '21:00 - 22:00', bookings: 35 },
-              { hour: '22:00 - 23:00', bookings: 28 },
-            ].map((peak, idx) => (
-              <div key={idx}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700 dark:text-gray-300">{peak.hour}</span>
-                  <span className="text-black dark:text-white font-medium">{peak.bookings} đặt bàn</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-emerald-600 h-2 rounded-full" style={{ width: `${(peak.bookings / 52) * 100}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Revenue Table */}
       <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">

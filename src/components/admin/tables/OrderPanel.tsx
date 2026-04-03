@@ -159,34 +159,53 @@ export default function OrderPanel({
     });
   };
 
-  // Auto add to booking immediately
+  // Check if product already exists in cart (using current cart state directly)
+  const findExistingItemInCart = (productId: number): BookingItem | undefined => {
+    // Use cart state directly, filter out served items
+    return cart.find(item => item.product_id === productId && item.status !== 'served');
+  };
+
+  // Auto add to booking immediately with duplicate check
   const addToCart = (product: Product) => {
     setLoading(true);
-    socket?.emit('add-booking-item', {
-      bookingId: bookingId,
-      productId: product.id,
-      quantity: 1,
-      notes: ''
-    }, (res: any) => {
-      if (res.success) {
-        const updatedBooking = {
-          ...res.booking,
-          table_amount: toNumber(res.booking.table_amount),
-          food_total: toNumber(res.booking.food_total),
-          total_with_food: toNumber(res.booking.total_with_food),
-          items: (res.booking.items || []).map((item: any) => ({
-            ...item,
-            quantity: toNumber(item.quantity),
-            price: toNumber(item.price),
-            subtotal: toNumber(item.subtotal)
-          }))
-        };
-        setCurrentBooking(updatedBooking);
-        setCart(updatedBooking.items);
-        if (onOrderUpdate) onOrderUpdate();
-      }
+    
+    // Check if product already exists in current cart (not served)
+    const existingItem = findExistingItemInCart(product.id);
+    
+    if (existingItem && existingItem.id) {
+      // If exists, increase quantity by 1
+      console.log('Increasing quantity for existing item:', existingItem.product_name, 'current quantity:', existingItem.quantity);
+      updateCartItem(existingItem.id, existingItem.quantity + 1);
       setLoading(false);
-    });
+    } else {
+      // If not exists, add new item
+      console.log('Adding new item:', product.name);
+      socket?.emit('add-booking-item', {
+        bookingId: bookingId,
+        productId: product.id,
+        quantity: 1,
+        notes: ''
+      }, (res: any) => {
+        if (res.success) {
+          const updatedBooking = {
+            ...res.booking,
+            table_amount: toNumber(res.booking.table_amount),
+            food_total: toNumber(res.booking.food_total),
+            total_with_food: toNumber(res.booking.total_with_food),
+            items: (res.booking.items || []).map((item: any) => ({
+              ...item,
+              quantity: toNumber(item.quantity),
+              price: toNumber(item.price),
+              subtotal: toNumber(item.subtotal)
+            }))
+          };
+          setCurrentBooking(updatedBooking);
+          setCart(updatedBooking.items);
+          if (onOrderUpdate) onOrderUpdate();
+        }
+        setLoading(false);
+      });
+    }
   };
 
   const updateCartItem = (itemId: number, newQuantity: number) => {
@@ -364,48 +383,60 @@ export default function OrderPanel({
                 {products
                   .filter(product => !selectedCategory || product.category_id === selectedCategory)
                   .filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map((product) => (
-                    <div
-                      key={product.id}
-                      onClick={() => addToCart(product)}
-                      className="border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer flex flex-col h-full"
-                    >
-                      <div className="p-3 flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium text-black dark:text-white text-sm flex-1">
-                            {product.name}
-                          </h3>
-                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-2 shrink-0">
-                            {toNumber(product.price).toLocaleString('vi-VN')}đ
-                          </span>
-                        </div>
-                        
-                        {/* Fixed height for description */}
-                        <div className="min-h-[40px] mb-2">
-                          {product.description ? (
-                            <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">
-                              {product.description}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-gray-300 dark:text-gray-600 italic">
-                              Không có mô tả
-                            </p>
-                          )}
-                        </div>
-                        
-                        {/* Button at bottom */}
-                        <button 
-                          className="mt-auto w-full bg-black text-white dark:bg-white dark:text-black py-1.5 rounded-md border border-gray-300 dark:border-gray-600 hover:opacity-80 transition flex items-center justify-center gap-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(product);
-                          }}
+                  .map((product) => {
+                    const existingItem = findExistingItemInCart(product.id);
+                    const currentQuantity = existingItem?.quantity || 0;
+                    
+                    return (
+                      <div
+                        key={product.id}
+                        className="border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer flex flex-col h-full relative"
+                      >
+                        {currentQuantity > 0 && (
+                          <div className="absolute -top-2 -right-2 bg-black dark:bg-white text-white dark:text-black rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg z-10">
+                            {currentQuantity}
+                          </div>
+                        )}
+                        <div 
+                          className="p-3 flex flex-col h-full"
+                          onClick={() => addToCart(product)}
                         >
-                          <BiPlus className="h-4 w-4" /> Thêm
-                        </button>
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-medium text-black dark:text-white text-sm flex-1">
+                              {product.name}
+                            </h3>
+                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-2 shrink-0">
+                              {toNumber(product.price).toLocaleString('vi-VN')}đ
+                            </span>
+                          </div>
+                          
+                          {/* Fixed height for description */}
+                          <div className="min-h-[40px] mb-2">
+                            {product.description ? (
+                              <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">
+                                {product.description}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-gray-300 dark:text-gray-600 italic">
+                                Không có mô tả
+                              </p>
+                            )}
+                          </div>
+                          
+                          {/* Button at bottom */}
+                          <button 
+                            className="mt-auto w-full bg-black text-white dark:bg-white dark:text-black py-1.5 rounded-md border border-gray-300 dark:border-gray-600 hover:opacity-80 transition flex items-center justify-center gap-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(product);
+                            }}
+                          >
+                            <BiPlus className="h-4 w-4" /> Thêm
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
 
@@ -416,6 +447,11 @@ export default function OrderPanel({
                   <h3 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
                     <BiCart className="h-5 w-5" />
                     Danh sách món đã gọi
+                    {activeCartItems.length > 0 && (
+                      <span className="text-sm bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                        {activeCartItems.reduce((sum, item) => sum + item.quantity, 0)} món
+                      </span>
+                    )}
                   </h3>
                 </div>
 
@@ -434,15 +470,15 @@ export default function OrderPanel({
                                 <button
                                   onClick={() => item.id && updateCartItem(item.id, item.quantity - 1)}
                                   disabled={loading || !item.id}
-                                  className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                  className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
                                 >
                                   <BiMinus className="h-3 w-3" />
                                 </button>
-                                <span className="text-sm text-black dark:text-white">{toNumber(item.quantity)}</span>
+                                <span className="text-sm text-black dark:text-white font-medium">{toNumber(item.quantity)}</span>
                                 <button
                                   onClick={() => item.id && updateCartItem(item.id, item.quantity + 1)}
                                   disabled={loading || !item.id}
-                                  className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                  className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
                                 >
                                   <BiPlus className="h-3 w-3" />
                                 </button>
