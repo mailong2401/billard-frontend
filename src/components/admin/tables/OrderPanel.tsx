@@ -289,16 +289,6 @@ export default function OrderPanel({
     });
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, { label: string; color: string }> = {
-      pending: { label: 'Chờ xử lý', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' },
-      preparing: { label: 'Đang chuẩn bị', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' },
-      served: { label: 'Đã phục vụ', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' },
-      cancelled: { label: 'Đã hủy', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' }
-    };
-    return labels[status] || { label: status, color: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400' };
-  };
-
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
     if (name.includes('bia')) return <BiBeer className="inline mr-1" />;
@@ -460,7 +450,10 @@ export default function OrderPanel({
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {activeCartItems.map((item, index) => {
-                      const statusInfo = getStatusLabel(item.status);
+                      // Chỉ hiển thị nút "Phục vụ" nếu đang ở trạng thái 'preparing'
+                      const canMarkAsServed = item.status === 'preparing';
+                      const canRemove = item.status !== 'served';
+                      
                       return (
                         <div key={item.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-3">
                           <div className="flex justify-between items-start">
@@ -488,12 +481,9 @@ export default function OrderPanel({
                               <p className="text-sm font-medium text-black dark:text-white">
                                 {toNumber(item.subtotal).toLocaleString('vi-VN')}đ
                               </p>
-                              <span className={`text-xs px-1.5 py-0.5 rounded ${statusInfo.color}`}>
-                                {statusInfo.label}
-                              </span>
                             </div>
                           </div>
-                          {item.id && item.status !== 'served' && (
+                          {item.id && canRemove && (
                             <div className="flex justify-end gap-2 mt-2">
                               <button
                                 onClick={() => removeCartItem(item.id!)}
@@ -501,7 +491,7 @@ export default function OrderPanel({
                               >
                                 <BiTrash className="h-3 w-3" /> Xóa
                               </button>
-                              {item.status === 'preparing' && (
+                              {canMarkAsServed && (
                                 <button
                                   onClick={() => markItemAsServed(item.id!)}
                                   className="text-green-500 dark:text-green-400 text-xs hover:text-green-700 dark:hover:text-green-300 transition-colors flex items-center gap-1"
