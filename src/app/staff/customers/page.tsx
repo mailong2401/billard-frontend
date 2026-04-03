@@ -21,6 +21,7 @@ interface Customer {
 interface Booking {
   id: number;
   booking_code: string;
+  table_id: number;        // ← Thêm dòng này
   table_name: string;
   start_time: string;
   end_time: string;
