@@ -79,10 +79,9 @@ const TableCard = memo(function TableCard({
 
   const getTypeColor = (typeCode: string) => {
     const colors: Record<string, string> = {
-      standard: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-      vip: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-      tournament:
-        "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+      standard: "text-gray-700 dark:text-gray-300",
+      vip: "text-amber-700 dark:text-amber-400",
+      tournament: "text-purple-700 dark:text-purple-400",
     };
     return colors[typeCode] || colors.standard;
   };

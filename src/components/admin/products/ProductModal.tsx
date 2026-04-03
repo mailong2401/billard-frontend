@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { BiX } from 'react-icons/bi';
+import { useState, useEffect } from "react";
+import { BiX } from "react-icons/bi";
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -16,35 +16,40 @@ export default function ProductModal({
   onClose,
   onSubmit,
   categories,
-  product
+  product,
 }: ProductModalProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     price: 0,
-    category_id: '',
+    category_id: "",
     is_available: true,
-    stock: 0
+    stock: 0,
   });
 
   useEffect(() => {
     if (product) {
+      // Chuyển đổi price từ số thập phân sang số nguyên
+      const cleanPrice = product.price ? Math.floor(Number(product.price)) : 0;
+      const cleanStock = product.stock ? Math.floor(Number(product.stock)) : 0;
+
       setFormData({
         name: product.name,
-        description: product.description || '',
-        price: product.price,
-        category_id: product.category_id?.toString() || '',
-        is_available: product.is_available !== undefined ? product.is_available : true,
-        stock: product.stock || 0
+        description: product.description || "",
+        price: cleanPrice,
+        category_id: product.category_id?.toString() || "",
+        is_available:
+          product.is_available !== undefined ? product.is_available : true,
+        stock: cleanStock,
       });
     } else {
       setFormData({
-        name: '',
-        description: '',
+        name: "",
+        description: "",
         price: 0,
-        category_id: '',
+        category_id: "",
         is_available: true,
-        stock: 0
+        stock: 0,
       });
     }
   }, [product]);
@@ -56,21 +61,24 @@ export default function ProductModal({
       price: Number(formData.price) || 0,
       category_id: Number(formData.category_id),
       stock: Number(formData.stock) || 0,
-      is_available: formData.is_available
+      is_available: formData.is_available,
     });
   };
 
   const formatPrice = (value: number) => {
-    return new Intl.NumberFormat('vi-VN').format(value);
+    return new Intl.NumberFormat("vi-VN").format(value);
   };
 
   // Xử lý thay đổi giá
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '') {
+    let value = e.target.value;
+    // Loại bỏ tất cả ký tự không phải số
+    value = value.replace(/[^0-9]/g, "");
+
+    if (value === "") {
       setFormData({ ...formData, price: 0 });
     } else {
-      const numValue = Number(value);
+      const numValue = parseInt(value, 10);
       if (!isNaN(numValue)) {
         setFormData({ ...formData, price: numValue });
       }
@@ -79,11 +87,14 @@ export default function ProductModal({
 
   // Xử lý thay đổi stock
   const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '') {
+    let value = e.target.value;
+    // Loại bỏ tất cả ký tự không phải số
+    value = value.replace(/[^0-9]/g, "");
+
+    if (value === "") {
       setFormData({ ...formData, stock: 0 });
     } else {
-      const numValue = Number(value);
+      const numValue = parseInt(value, 10);
       if (!isNaN(numValue)) {
         setFormData({ ...formData, stock: numValue });
       }
@@ -97,10 +108,10 @@ export default function ProductModal({
       <div className="bg-white dark:bg-black rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
           <h2 className="text-xl font-semibold text-black dark:text-white">
-            {product ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}
+            {product ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
           </h2>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all hover:scale-110"
           >
             <BiX className="h-6 w-6" />
@@ -117,7 +128,9 @@ export default function ProductModal({
               required
               autoFocus
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors"
               placeholder="Nhập tên sản phẩm"
             />
@@ -130,7 +143,9 @@ export default function ProductModal({
             <select
               required
               value={formData.category_id}
-              onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, category_id: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors cursor-pointer"
             >
               <option value="">-- Chọn danh mục --</option>
@@ -150,9 +165,12 @@ export default function ProductModal({
               <input
                 type="text"
                 inputMode="numeric"
-                pattern="[0-9]*"
                 required
-                value={formData.price === 0 ? '' : formData.price}
+                value={
+                  formData.price === 0
+                    ? ""
+                    : formData.price.toLocaleString("vi-VN")
+                }
                 onChange={handlePriceChange}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors pr-16"
                 placeholder="0"
@@ -175,8 +193,7 @@ export default function ProductModal({
             <input
               type="text"
               inputMode="numeric"
-              pattern="[0-9]*"
-              value={formData.stock === 0 ? '' : formData.stock}
+              value={formData.stock === 0 ? "" : formData.stock.toString()}
               onChange={handleStockChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors"
               placeholder="0"
@@ -190,7 +207,9 @@ export default function ProductModal({
             <textarea
               rows={3}
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors resize-none"
               placeholder="Mô tả sản phẩm..."
             />
@@ -201,8 +220,13 @@ export default function ProductModal({
               Trạng thái
             </label>
             <select
-              value={formData.is_available ? 'true' : 'false'}
-              onChange={(e) => setFormData({ ...formData, is_available: e.target.value === 'true' })}
+              value={formData.is_available ? "true" : "false"}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  is_available: e.target.value === "true",
+                })
+              }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-black text-black dark:text-white transition-colors cursor-pointer"
             >
               <option value="true">Đang bán</option>
@@ -222,7 +246,7 @@ export default function ProductModal({
               type="submit"
               className="flex-1 px-4 py-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-md transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
             >
-              {product ? 'Cập nhật' : 'Thêm mới'}
+              {product ? "Cập nhật" : "Thêm mới"}
             </button>
           </div>
         </form>

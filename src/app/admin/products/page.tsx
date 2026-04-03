@@ -3,7 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { useToast } from "@/hooks/useToast";
-import { BiPlus, BiEdit, BiTrash, BiSearch } from "react-icons/bi";
+import {
+  BiPlus,
+  BiEdit,
+  BiTrash,
+  BiSearch,
+  BiCart,
+  BiDollar,
+} from "react-icons/bi";
 import ProductModal from "@/components/admin/products/ProductModal";
 import CategoryModal from "@/components/admin/products/CategoryModal";
 
@@ -26,6 +33,143 @@ interface Category {
   sort_order: number;
   is_active: boolean;
 }
+
+// Product Card Component với hiệu ứng lật giống TableCard
+const ProductCard = ({ product, onEdit, onDelete, formatPrice }: any) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  return (
+    <div
+      className="relative w-full h-full min-h-[320px] cursor-pointer"
+      onMouseEnter={() => setIsFlipped(true)}
+      onMouseLeave={() => setIsFlipped(false)}
+    >
+      <div
+        className={`relative w-full h-full transition-all duration-500 preserve-3d ${isFlipped ? "rotate-y-180" : ""}`}
+      >
+        {/* Mặt trước - Thông tin cơ bản */}
+        <div className="absolute w-full h-full backface-hidden bg-white dark:bg-black rounded-lg shadow-md border border-gray-200 dark:border-gray-800 p-5 flex flex-col">
+          {/* Góc trên bên trái - Danh mục */}
+          <div className="absolute top-3 left-3">
+            <span className="px-2 py-1 rounded-md text-xl font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              {product.category_name}
+            </span>
+          </div>
+
+          {/* Trạng thái - góc trên bên phải */}
+          <div className="absolute top-3 right-3">
+            <span
+              className={`px-2 py-1 rounded-full text-xl font-medium ${
+                product.is_available
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+              }`}
+            >
+              {product.is_available ? "Đang bán" : "Ngừng bán"}
+            </span>
+          </div>
+
+          {/* Nội dung chính giữa */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="text-center mb-4">
+              <h3 className="text-2xl font-bold text-black dark:text-white mb-2">
+                {product.name}
+              </h3>
+              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                {formatPrice(product.price)}
+              </p>
+            </div>
+
+            {/* Thông tin tồn kho */}
+            {product.stock !== undefined && product.stock <= 10 && (
+              <div className="text-center">
+                {product.stock > 0 ? (
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    ⚠️ Còn {product.stock} sản phẩm
+                  </p>
+                ) : (
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    ❌ Hết hàng
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mặt sau - Chi tiết đầy đủ */}
+        <div className="absolute w-full h-full backface-hidden bg-white dark:bg-black rounded-lg shadow-md border border-gray-200 dark:border-gray-800 p-5 flex flex-col rotate-y-180 overflow-y-auto">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-black dark:text-white">
+                {product.name}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {product.category_name}
+              </p>
+            </div>
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                product.is_available
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+              }`}
+            >
+              {product.is_available ? "Đang bán" : "Ngừng bán"}
+            </span>
+          </div>
+
+          {/* Mô tả */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {product.description || "Không có mô tả"}
+            </p>
+          </div>
+
+          {/* Thông tin giá và tồn kho */}
+          <div className="space-y-2 mb-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Giá bán:
+              </span>
+              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                {formatPrice(product.price)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Tồn kho:
+              </span>
+              <span
+                className={`font-medium ${product.stock === 0 ? "text-red-600" : "text-black dark:text-white"}`}
+              >
+                {product.stock} sản phẩm
+              </span>
+            </div>
+          </div>
+
+          {/* Nút chức năng */}
+          <div className="mt-auto flex space-x-2">
+            <button
+              onClick={() => onEdit(product)}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <BiEdit className="h-4 w-4" />
+              <span>Sửa</span>
+            </button>
+            <button
+              onClick={() => onDelete(product.id)}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-black border border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <BiTrash className="h-4 w-4" />
+              <span>Xóa</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function ProductsPage() {
   const { socket, isConnected } = useSocket();
@@ -322,87 +466,16 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
-            <div
+            <ProductCard
               key={product.id}
-              className="bg-white dark:bg-black rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-gray-200 dark:border-gray-800 flex flex-col h-full"
-            >
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-black dark:text-white">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {product.category_name}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ml-2 ${
-                      product.is_available === true
-                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400"
-                    }`}
-                  >
-                    {product.is_available === true ? "Đang bán" : "Ngừng bán"}
-                  </span>
-                </div>
-
-                {/* Fixed height for description area */}
-                <div className="min-h-[60px] mb-3">
-                  {product.description ? (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {product.description}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-                      Không có mô tả
-                    </p>
-                  )}
-                </div>
-
-                {/* Push bottom content to the bottom */}
-                <div className="mt-auto">
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-100 dark:border-gray-800">
-                    <div>
-                      <span className="text-xl font-bold text-black dark:text-white">
-                        {formatPrice(product.price)}
-                      </span>
-                      {product.stock !== undefined &&
-                        product.stock < 10 &&
-                        product.stock > 0 && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                            ⚠️ Còn {product.stock} sản phẩm
-                          </p>
-                        )}
-                      {product.stock === 0 && (
-                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                          ❌ Hết hàng
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsProductModalOpen(true);
-                        }}
-                        className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
-                        title="Sửa"
-                      >
-                        <BiEdit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-all hover:scale-110"
-                        title="Xóa"
-                      >
-                        <BiTrash className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              product={product}
+              onEdit={(p: Product) => {
+                setEditingProduct(p);
+                setIsProductModalOpen(true);
+              }}
+              onDelete={handleDeleteProduct}
+              formatPrice={formatPrice}
+            />
           ))}
         </div>
       )}
@@ -427,6 +500,19 @@ export default function ProductsPage() {
         onSubmit={editingCategory ? handleUpdateCategory : handleCreateCategory}
         category={editingCategory}
       />
+
+      <style jsx global>{`
+        .preserve-3d {
+          transform-style: preserve-3d;
+        }
+        .backface-hidden {
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+          transform: rotateY(180deg);
+        }
+      `}</style>
     </div>
   );
 }

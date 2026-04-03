@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Modal from '@/components/common/Modal';
-import { CreateTableData, TableType } from '@/types';
-import { TABLE_TYPE } from '@/utils/constants';
+import { useState } from "react";
+import Modal from "@/components/common/Modal";
+import { CreateTableData, TableType } from "@/types";
+import { TABLE_TYPE } from "@/utils/constants";
 
 interface CreateTableModalProps {
   isOpen: boolean;
@@ -11,27 +11,52 @@ interface CreateTableModalProps {
   onSubmit: (data: CreateTableData) => void;
 }
 
-export default function CreateTableModal({ isOpen, onClose, onSubmit }: CreateTableModalProps) {
+export default function CreateTableModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: CreateTableModalProps) {
   const [formData, setFormData] = useState<CreateTableData>({
-    table_number: '',
-    table_name: '',
-    table_type: 'standard',
+    table_number: "",
+    table_name: "",
+    table_type: "standard",
     price_per_hour: 50000,
-    description: '',
-    location: '',
+    description: "",
+    location: "",
   });
+
+  // Format giá tiền
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat("vi-VN").format(value);
+  };
+
+  // Xử lý thay đổi giá
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // Loại bỏ tất cả ký tự không phải số
+    value = value.replace(/[^0-9]/g, "");
+
+    if (value === "") {
+      setFormData({ ...formData, price_per_hour: 0 });
+    } else {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue)) {
+        setFormData({ ...formData, price_per_hour: numValue });
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
     onClose();
     setFormData({
-      table_number: '',
-      table_name: '',
-      table_type: 'standard',
+      table_number: "",
+      table_name: "",
+      table_type: "standard",
       price_per_hour: 50000,
-      description: '',
-      location: '',
+      description: "",
+      location: "",
     });
   };
 
@@ -46,7 +71,9 @@ export default function CreateTableModal({ isOpen, onClose, onSubmit }: CreateTa
             type="text"
             required
             value={formData.table_number}
-            onChange={(e) => setFormData({ ...formData, table_number: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, table_number: e.target.value })
+            }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white"
             placeholder="VD: T07"
           />
@@ -60,7 +87,9 @@ export default function CreateTableModal({ isOpen, onClose, onSubmit }: CreateTa
             type="text"
             required
             value={formData.table_name}
-            onChange={(e) => setFormData({ ...formData, table_name: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, table_name: e.target.value })
+            }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white"
             placeholder="VD: Bàn Standard 4"
           />
@@ -72,7 +101,12 @@ export default function CreateTableModal({ isOpen, onClose, onSubmit }: CreateTa
           </label>
           <select
             value={formData.table_type}
-            onChange={(e) => setFormData({ ...formData, table_type: e.target.value as TableType })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                table_type: e.target.value as TableType,
+              })
+            }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white"
           >
             {Object.entries(TABLE_TYPE).map(([value, { label }]) => (
@@ -87,42 +121,59 @@ export default function CreateTableModal({ isOpen, onClose, onSubmit }: CreateTa
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Giá (VNĐ/giờ) <span className="text-red-500">*</span>
           </label>
-          <input
-            type="number"
-            required
-            value={formData.price_per_hour}
-            onChange={(e) => setFormData({ ...formData, price_per_hour: parseInt(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white"
-            placeholder="50000"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              inputMode="numeric"
+              required
+              value={
+                formData.price_per_hour === 0
+                  ? ""
+                  : formatPrice(formData.price_per_hour)
+              }
+              onChange={handlePriceChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white pr-16"
+              placeholder="0"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+              VNĐ/giờ
+            </span>
+          </div>
+          {formData.price_per_hour > 0 && (
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+              {formatPrice(formData.price_per_hour)} VNĐ/giờ
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vị trí</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Vị trí
+          </label>
           <input
             type="text"
-            value={formData.location || ''}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            value={formData.location || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, location: e.target.value })
+            }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white"
             placeholder="VD: Tầng 1 - Khu A"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mô tả</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Mô tả
+          </label>
           <textarea
-            value={formData.description || ''}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            value={formData.description || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white"
             placeholder="Mô tả thêm về bàn..."
           />
-        </div>
-
-        <div className="bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm p-3 rounded-md border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            💡 Thông tin: Bàn sẽ được tạo với trạng thái <span className="font-semibold text-emerald-600 dark:text-emerald-400">"Trống"</span>
-          </p>
         </div>
 
         <div className="flex space-x-3 pt-4">

@@ -1,7 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { BiCart, BiPlus, BiMinus, BiTrash, BiX, BiCoffee, BiBeer, BiFoodMenu } from 'react-icons/bi';
+import { useState, useEffect } from "react";
+import {
+  BiCart,
+  BiPlus,
+  BiMinus,
+  BiTrash,
+  BiX,
+  BiCoffee,
+  BiBeer,
+  BiFoodMenu,
+} from "react-icons/bi";
 
 interface Product {
   id: number;
@@ -52,7 +61,7 @@ export default function OrderPanel({
   bookingId,
   tableName,
   socket,
-  onOrderUpdate
+  onOrderUpdate,
 }: OrderPanelProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -60,7 +69,7 @@ export default function OrderPanel({
   const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
   const [cart, setCart] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const toNumber = (value: any): number => {
     const num = Number(value);
@@ -77,9 +86,9 @@ export default function OrderPanel({
 
   useEffect(() => {
     if (isOpen && socket) {
-      socket.emit('join-table-room', { tableId });
+      socket.emit("join-table-room", { tableId });
       return () => {
-        socket.emit('leave-table-room', { tableId });
+        socket.emit("leave-table-room", { tableId });
       };
     }
   }, [isOpen, socket, tableId]);
@@ -99,8 +108,8 @@ export default function OrderPanel({
             ...item,
             quantity: toNumber(item.quantity),
             price: toNumber(item.price),
-            subtotal: toNumber(item.subtotal)
-          }))
+            subtotal: toNumber(item.subtotal),
+          })),
         };
         setCurrentBooking(updatedBooking);
         setCart(updatedBooking.items || []);
@@ -108,19 +117,19 @@ export default function OrderPanel({
       }
     };
 
-    socket.on('booking-updated', handleBookingUpdated);
+    socket.on("booking-updated", handleBookingUpdated);
 
     return () => {
-      socket.off('booking-updated', handleBookingUpdated);
+      socket.off("booking-updated", handleBookingUpdated);
     };
   }, [socket, currentBooking?.id, isOpen, onOrderUpdate]);
 
   const loadProducts = () => {
-    socket?.emit('get-products', {}, (res: any) => {
+    socket?.emit("get-products", {}, (res: any) => {
       if (res.success) {
         const productsWithNumberPrice = res.data.map((p: any) => ({
           ...p,
-          price: toNumber(p.price)
+          price: toNumber(p.price),
         }));
         setProducts(productsWithNumberPrice);
       }
@@ -128,7 +137,7 @@ export default function OrderPanel({
   };
 
   const loadCategories = () => {
-    socket?.emit('get-categories', {}, (res: any) => {
+    socket?.emit("get-categories", {}, (res: any) => {
       if (res.success) {
         setCategories(res.data);
         if (res.data.length > 0 && !selectedCategory) {
@@ -139,7 +148,7 @@ export default function OrderPanel({
   };
 
   const loadCurrentBooking = () => {
-    socket?.emit('get-booking-by-id', { id: bookingId }, (res: any) => {
+    socket?.emit("get-booking-by-id", { id: bookingId }, (res: any) => {
       if (res.success && res.data) {
         const booking = {
           ...res.data,
@@ -150,8 +159,8 @@ export default function OrderPanel({
             ...item,
             quantity: toNumber(item.quantity),
             price: toNumber(item.price),
-            subtotal: toNumber(item.subtotal)
-          }))
+            subtotal: toNumber(item.subtotal),
+          })),
         };
         setCurrentBooking(booking);
         setCart(booking.items);
@@ -160,32 +169,81 @@ export default function OrderPanel({
   };
 
   // Check if product already exists in cart (using current cart state directly)
-  const findExistingItemInCart = (productId: number): BookingItem | undefined => {
+  const findExistingItemInCart = (
+    productId: number,
+  ): BookingItem | undefined => {
     // Use cart state directly, filter out served items
-    return cart.find(item => item.product_id === productId && item.status !== 'served');
+    return cart.find(
+      (item) => item.product_id === productId && item.status !== "served",
+    );
   };
 
   // Auto add to booking immediately with duplicate check
   const addToCart = (product: Product) => {
     setLoading(true);
-    
+
     // Check if product already exists in current cart (not served)
     const existingItem = findExistingItemInCart(product.id);
-    
+
     if (existingItem && existingItem.id) {
       // If exists, increase quantity by 1
-      console.log('Increasing quantity for existing item:', existingItem.product_name, 'current quantity:', existingItem.quantity);
+      console.log(
+        "Increasing quantity for existing item:",
+        existingItem.product_name,
+        "current quantity:",
+        existingItem.quantity,
+      );
       updateCartItem(existingItem.id, existingItem.quantity + 1);
       setLoading(false);
     } else {
       // If not exists, add new item
-      console.log('Adding new item:', product.name);
-      socket?.emit('add-booking-item', {
-        bookingId: bookingId,
-        productId: product.id,
-        quantity: 1,
-        notes: ''
-      }, (res: any) => {
+      console.log("Adding new item:", product.name);
+      socket?.emit(
+        "add-booking-item",
+        {
+          bookingId: bookingId,
+          productId: product.id,
+          quantity: 1,
+          notes: "",
+        },
+        (res: any) => {
+          if (res.success) {
+            const updatedBooking = {
+              ...res.booking,
+              table_amount: toNumber(res.booking.table_amount),
+              food_total: toNumber(res.booking.food_total),
+              total_with_food: toNumber(res.booking.total_with_food),
+              items: (res.booking.items || []).map((item: any) => ({
+                ...item,
+                quantity: toNumber(item.quantity),
+                price: toNumber(item.price),
+                subtotal: toNumber(item.subtotal),
+              })),
+            };
+            setCurrentBooking(updatedBooking);
+            setCart(updatedBooking.items);
+            if (onOrderUpdate) onOrderUpdate();
+          }
+          setLoading(false);
+        },
+      );
+    }
+  };
+
+  const updateCartItem = (itemId: number, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeCartItem(itemId);
+      return;
+    }
+
+    setLoading(true);
+    socket?.emit(
+      "update-booking-item",
+      {
+        itemId,
+        quantity: newQuantity,
+      },
+      (res: any) => {
         if (res.success) {
           const updatedBooking = {
             ...res.booking,
@@ -196,53 +254,21 @@ export default function OrderPanel({
               ...item,
               quantity: toNumber(item.quantity),
               price: toNumber(item.price),
-              subtotal: toNumber(item.subtotal)
-            }))
+              subtotal: toNumber(item.subtotal),
+            })),
           };
           setCurrentBooking(updatedBooking);
           setCart(updatedBooking.items);
           if (onOrderUpdate) onOrderUpdate();
         }
         setLoading(false);
-      });
-    }
-  };
-
-  const updateCartItem = (itemId: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeCartItem(itemId);
-      return;
-    }
-    
-    setLoading(true);
-    socket?.emit('update-booking-item', {
-      itemId,
-      quantity: newQuantity
-    }, (res: any) => {
-      if (res.success) {
-        const updatedBooking = {
-          ...res.booking,
-          table_amount: toNumber(res.booking.table_amount),
-          food_total: toNumber(res.booking.food_total),
-          total_with_food: toNumber(res.booking.total_with_food),
-          items: (res.booking.items || []).map((item: any) => ({
-            ...item,
-            quantity: toNumber(item.quantity),
-            price: toNumber(item.price),
-            subtotal: toNumber(item.subtotal)
-          }))
-        };
-        setCurrentBooking(updatedBooking);
-        setCart(updatedBooking.items);
-        if (onOrderUpdate) onOrderUpdate();
-      }
-      setLoading(false);
-    });
+      },
+    );
   };
 
   const removeCartItem = (itemId: number) => {
     setLoading(true);
-    socket?.emit('remove-booking-item', { itemId }, (res: any) => {
+    socket?.emit("remove-booking-item", { itemId }, (res: any) => {
       if (res.success) {
         const updatedBooking = {
           ...res.booking,
@@ -253,8 +279,8 @@ export default function OrderPanel({
             ...item,
             quantity: toNumber(item.quantity),
             price: toNumber(item.price),
-            subtotal: toNumber(item.subtotal)
-          }))
+            subtotal: toNumber(item.subtotal),
+          })),
         };
         setCurrentBooking(updatedBooking);
         setCart(updatedBooking.items);
@@ -265,46 +291,51 @@ export default function OrderPanel({
   };
 
   const markItemAsServed = (itemId: number) => {
-    socket?.emit('update-booking-item-status', {
-      itemId,
-      status: 'served'
-    }, (res: any) => {
-      if (res.success) {
-        const updatedBooking = {
-          ...res.booking,
-          table_amount: toNumber(res.booking.table_amount),
-          food_total: toNumber(res.booking.food_total),
-          total_with_food: toNumber(res.booking.total_with_food),
-          items: (res.booking.items || []).map((item: any) => ({
-            ...item,
-            quantity: toNumber(item.quantity),
-            price: toNumber(item.price),
-            subtotal: toNumber(item.subtotal)
-          }))
-        };
-        setCurrentBooking(updatedBooking);
-        setCart(updatedBooking.items);
-        if (onOrderUpdate) onOrderUpdate();
-      }
-    });
+    socket?.emit(
+      "update-booking-item-status",
+      {
+        itemId,
+        status: "served",
+      },
+      (res: any) => {
+        if (res.success) {
+          const updatedBooking = {
+            ...res.booking,
+            table_amount: toNumber(res.booking.table_amount),
+            food_total: toNumber(res.booking.food_total),
+            total_with_food: toNumber(res.booking.total_with_food),
+            items: (res.booking.items || []).map((item: any) => ({
+              ...item,
+              quantity: toNumber(item.quantity),
+              price: toNumber(item.price),
+              subtotal: toNumber(item.subtotal),
+            })),
+          };
+          setCurrentBooking(updatedBooking);
+          setCart(updatedBooking.items);
+          if (onOrderUpdate) onOrderUpdate();
+        }
+      },
+    );
   };
 
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
-    if (name.includes('bia')) return <BiBeer className="inline mr-1" />;
-    if (name.includes('ăn') || name.includes('food')) return <BiFoodMenu className="inline mr-1" />;
+    if (name.includes("bia")) return <BiBeer className="inline mr-1" />;
+    if (name.includes("ăn") || name.includes("food"))
+      return <BiFoodMenu className="inline mr-1" />;
     return <BiCoffee className="inline mr-1" />;
   };
 
   const calculateCartTotal = (): number => {
     return cart.reduce((sum, item) => {
-      if (item.status === 'served') return sum;
+      if (item.status === "served") return sum;
       return sum + toNumber(item.subtotal);
     }, 0);
   };
 
   const cartTotal = calculateCartTotal();
-  const activeCartItems = cart.filter(item => item.status !== 'served');
+  const activeCartItems = cart.filter((item) => item.status !== "served");
 
   if (!isOpen) return null;
 
@@ -358,8 +389,8 @@ export default function OrderPanel({
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center gap-1 border transition ${
                       selectedCategory === cat.id
-                        ? 'bg-black text-white dark:bg-white dark:text-black border-gray-300 dark:border-gray-600'
-                        : 'bg-white dark:bg-black text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? "bg-black text-white dark:bg-white dark:text-black border-gray-300 dark:border-gray-600"
+                        : "bg-white dark:bg-black text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                   >
                     {getCategoryIcon(cat.name)}
@@ -371,23 +402,26 @@ export default function OrderPanel({
               {/* Products Grid - Fixed height cards */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {products
-                  .filter(product => !selectedCategory || product.category_id === selectedCategory)
-                  .filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(
+                    (product) =>
+                      !selectedCategory ||
+                      product.category_id === selectedCategory,
+                  )
+                  .filter((product) =>
+                    product.name
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()),
+                  )
                   .map((product) => {
                     const existingItem = findExistingItemInCart(product.id);
                     const currentQuantity = existingItem?.quantity || 0;
-                    
+
                     return (
                       <div
                         key={product.id}
                         className="border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer flex flex-col h-full relative"
                       >
-                        {currentQuantity > 0 && (
-                          <div className="absolute -top-2 -right-2 bg-black dark:bg-white text-white dark:text-black rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg z-10">
-                            {currentQuantity}
-                          </div>
-                        )}
-                        <div 
+                        <div
                           className="p-3 flex flex-col h-full"
                           onClick={() => addToCart(product)}
                         >
@@ -396,10 +430,10 @@ export default function OrderPanel({
                               {product.name}
                             </h3>
                             <span className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-2 shrink-0">
-                              {toNumber(product.price).toLocaleString('vi-VN')}đ
+                              {toNumber(product.price).toLocaleString("vi-VN")}đ
                             </span>
                           </div>
-                          
+
                           {/* Fixed height for description */}
                           <div className="min-h-[40px] mb-2">
                             {product.description ? (
@@ -412,9 +446,9 @@ export default function OrderPanel({
                               </p>
                             )}
                           </div>
-                          
+
                           {/* Button at bottom */}
-                          <button 
+                          <button
                             className="mt-auto w-full bg-black text-white dark:bg-white dark:text-black py-1.5 rounded-md border border-gray-300 dark:border-gray-600 hover:opacity-80 transition flex items-center justify-center gap-1"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -434,42 +468,52 @@ export default function OrderPanel({
             <div className="space-y-4">
               <div className="bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg p-4 sticky top-20">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
+                  <h3 className="text-xl font-semibold text-black dark:text-white flex items-center gap-2">
                     <BiCart className="h-5 w-5" />
                     Danh sách món đã gọi
-                    {activeCartItems.length > 0 && (
-                      <span className="text-sm bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                        {activeCartItems.reduce((sum, item) => sum + item.quantity, 0)} món
-                      </span>
-                    )}
                   </h3>
                 </div>
 
                 {activeCartItems.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">Chưa có sản phẩm nào được gọi</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                    Chưa có sản phẩm nào được gọi
+                  </p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {activeCartItems.map((item, index) => {
                       // Chỉ hiển thị nút "Phục vụ" nếu đang ở trạng thái 'preparing'
-                      const canMarkAsServed = item.status === 'preparing';
-                      const canRemove = item.status !== 'served';
-                      
+                      const canMarkAsServed = item.status === "preparing";
+                      const canRemove = item.status !== "served";
+
                       return (
-                        <div key={item.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                        <div
+                          key={item.id || index}
+                          className="border-b border-gray-200 dark:border-gray-700 pb-3"
+                        >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <p className="font-medium text-black dark:text-white text-sm">{item.product_name}</p>
+                              <p className="font-medium text-black dark:text-white text-lg">
+                                {item.product_name}
+                              </p>
                               <div className="flex items-center space-x-2 mt-1">
                                 <button
-                                  onClick={() => item.id && updateCartItem(item.id, item.quantity - 1)}
+                                  onClick={() =>
+                                    item.id &&
+                                    updateCartItem(item.id, item.quantity - 1)
+                                  }
                                   disabled={loading || !item.id}
                                   className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
                                 >
                                   <BiMinus className="h-3 w-3" />
                                 </button>
-                                <span className="text-sm text-black dark:text-white font-medium">{toNumber(item.quantity)}</span>
+                                <span className="text-lg text-black dark:text-white font-medium">
+                                  {toNumber(item.quantity)}
+                                </span>
                                 <button
-                                  onClick={() => item.id && updateCartItem(item.id, item.quantity + 1)}
+                                  onClick={() =>
+                                    item.id &&
+                                    updateCartItem(item.id, item.quantity + 1)
+                                  }
                                   disabled={loading || !item.id}
                                   className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
                                 >
@@ -478,8 +522,11 @@ export default function OrderPanel({
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-medium text-black dark:text-white">
-                                {toNumber(item.subtotal).toLocaleString('vi-VN')}đ
+                              <p className="text-lg font-medium text-black dark:text-white">
+                                {toNumber(item.subtotal).toLocaleString(
+                                  "vi-VN",
+                                )}
+                                đ
                               </p>
                             </div>
                           </div>
@@ -487,9 +534,9 @@ export default function OrderPanel({
                             <div className="flex justify-end gap-2 mt-2">
                               <button
                                 onClick={() => removeCartItem(item.id!)}
-                                className="text-red-500 dark:text-red-400 text-xs hover:text-red-700 dark:hover:text-red-300 transition-colors flex items-center gap-1"
+                                className="text-red-500 dark:text-red-400 text-lg hover:text-red-700 dark:hover:text-red-300 transition-colors flex items-center gap-1"
                               >
-                                <BiTrash className="h-3 w-3" /> Xóa
+                                <BiTrash className="h-5 w-5" /> Xóa
                               </button>
                               {canMarkAsServed && (
                                 <button
@@ -510,14 +557,13 @@ export default function OrderPanel({
                 {activeCartItems.length > 0 && (
                   <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
                     <div className="flex justify-between mb-2">
-                      <span className="font-semibold text-black dark:text-white">Tạm tính:</span>
+                      <span className="font-semibold text-black dark:text-white">
+                        Tạm tính:
+                      </span>
                       <span className="text-xl font-bold text-black dark:text-white">
-                        {cartTotal.toLocaleString('vi-VN')}đ
+                        {cartTotal.toLocaleString("vi-VN")}đ
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
-                      * Món ăn đã được gửi xuống bếp ngay khi thêm vào giỏ
-                    </p>
                   </div>
                 )}
               </div>
