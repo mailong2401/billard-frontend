@@ -94,7 +94,7 @@ export default function BookingList({ bookings, loading, onCheckIn, onCheckOut, 
                       {formatCurrency(booking.total_amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
+                      <span className={`px-2 py-1 rounded-full text-sm  ${status.color}`}>
                         {status.label}
                       </span>
                     </td>
