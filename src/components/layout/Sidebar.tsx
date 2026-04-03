@@ -11,6 +11,7 @@ import {
   BiChevronRight,
   BiHome,
   BiUser,
+  BiBarChart,
   BiLogOut
 } from 'react-icons/bi';
 import ThemeToggle from './ThemeToggle';
@@ -21,7 +22,8 @@ const navigation = [
   { name: 'Người dùng', href: '/admin/users', icon: BiUser },
   { name: 'Bàn Bi Da', href: '/admin/tables', icon: BiTable },
   { name: 'Đặt Bàn', href: '/admin/bookings', icon: BiCalendar },
-  { name: 'Sản phẩm', href: '/admin/products', icon: BiFoodMenu }
+  { name: 'Sản phẩm', href: '/admin/products', icon: BiFoodMenu },
+  { name: 'Thống kê', href: '/admin/reports', icon: BiBarChart }
 ];
 
 interface SidebarProps {

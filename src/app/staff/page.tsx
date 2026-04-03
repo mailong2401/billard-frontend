@@ -10,7 +10,7 @@ import OrderPanel from '@/components/admin/tables/OrderPanel';
 import PlayDirectModal from '@/components/admin/tables/PlayDirectModal';
 import BookingForm from '@/components/admin/bookings/BookingForm';
 
-// Helper functions (giữ nguyên)
+// Helper functions
 const parseDateTime = (dateStr: string): Date => {
   if (!dateStr) return new Date();
   const [datePart, timePart] = dateStr.split(' ');
@@ -76,6 +76,7 @@ export default function StaffPage() {
   const isMounted = useRef(true);
   const initialized = useRef(false);
   const realtimeInterval = useRef<NodeJS.Timeout | null>(null);
+  const isUpdating = useRef(false);
   const [activeBookings, setActiveBookings] = useState<Map<number, { 
     id: number; 
     start_time: string; 
@@ -93,8 +94,15 @@ export default function StaffPage() {
 
   // ================= LOAD TABLES =================
   const loadTables = useCallback(() => {
+    if (isUpdating.current) return;
+    isUpdating.current = true;
+    
     socket?.emit('get-tables-full', {}, (res: any) => {
-      if (!isMounted.current) return;
+      if (!isMounted.current) {
+        isUpdating.current = false;
+        return;
+      }
+      
       if (res.success) {
         setTables(res.data);
         const bookingsMap = new Map();
@@ -124,6 +132,7 @@ export default function StaffPage() {
         setActiveBookings(bookingsMap);
       }
       setLoading(false);
+      isUpdating.current = false;
     });
   }, [socket]);
 
@@ -144,9 +153,12 @@ export default function StaffPage() {
   useEffect(() => {
     if (!socket || !isClient) return;
     if (realtimeInterval.current) clearInterval(realtimeInterval.current);
+    
     realtimeInterval.current = setInterval(() => {
       setActiveBookings(prev => {
         const newMap = new Map(prev);
+        let hasChanges = false;
+        
         newMap.forEach((booking, tableId) => {
           if (!booking?.start_time) return;
           const table = tables.find(t => t.id === tableId);
@@ -156,16 +168,21 @@ export default function StaffPage() {
           const diffMs = now.getTime() - startTime.getTime();
           const hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
           const currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
-          newMap.set(tableId, {
-            ...booking,
-            current_amount: currentAmount,
-            hours_played: hoursPlayed,
-            total_amount: currentAmount + safeNumber(booking.food_total || 0),
-          });
+          
+          if (booking.current_amount !== currentAmount) {
+            hasChanges = true;
+            newMap.set(tableId, {
+              ...booking,
+              current_amount: currentAmount,
+              hours_played: hoursPlayed,
+              total_amount: currentAmount + safeNumber(booking.food_total || 0),
+            });
+          }
         });
-        return newMap;
+        return hasChanges ? newMap : prev;
       });
     }, 1000);
+    
     return () => {
       if (realtimeInterval.current) clearInterval(realtimeInterval.current);
     };
@@ -174,30 +191,64 @@ export default function StaffPage() {
   // ================= REALTIME TABLE UPDATES =================
   useEffect(() => {
     if (!socket || !isClient) return;
+    
     const handleTableCreated = (newTable: any) => {
       setTables(prev => [newTable, ...prev]);
       success(`Bàn mới "${newTable.table_name}" đã được thêm`);
     };
+    
     const handleTableUpdated = (updatedTable: any) => {
       setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
       success(`Bàn "${updatedTable.table_name}" đã được cập nhật`);
     };
+    
     const handleTableDeleted = ({ tableId }: { tableId: number }) => {
       setTables(prev => prev.filter(t => t.id !== tableId));
       success(`Bàn đã được xóa`);
     };
+    
     const handleTableStatusChanged = (updatedTable: any) => {
       setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
     };
+    
+    const handleNewBooking = (booking: any) => {
+      if (booking.table_id) {
+        setTables(prev => prev.map(t =>
+          t.id === booking.table_id ? { ...t, status: 'reserved' } : t
+        ));
+      }
+    };
+    
+    const handleBookingUpdated = (updated: any) => {
+      if (updated.table_id) {
+        let newStatus = 'available';
+        if (updated.status === 'checked_in') newStatus = 'occupied';
+        else if (updated.status === 'confirmed') newStatus = 'reserved';
+        else if (updated.status === 'completed') newStatus = 'available';
+        else if (updated.status === 'cancelled') newStatus = 'available';
+        
+        setTables(prev => prev.map(t =>
+          t.id === updated.table_id ? { ...t, status: newStatus } : t
+        ));
+      }
+    };
+    
     socket.on('table-created', handleTableCreated);
     socket.on('table-updated', handleTableUpdated);
     socket.on('table-deleted', handleTableDeleted);
     socket.on('table-status-changed', handleTableStatusChanged);
+    socket.on('new-booking', handleNewBooking);
+    socket.on('booking-updated', handleBookingUpdated);
+    socket.on('booking-cancelled', handleBookingUpdated);
+    
     return () => {
       socket.off('table-created', handleTableCreated);
       socket.off('table-updated', handleTableUpdated);
       socket.off('table-deleted', handleTableDeleted);
       socket.off('table-status-changed', handleTableStatusChanged);
+      socket.off('new-booking', handleNewBooking);
+      socket.off('booking-updated', handleBookingUpdated);
+      socket.off('booking-cancelled', handleBookingUpdated);
     };
   }, [socket, isClient, success]);
 
@@ -226,7 +277,6 @@ export default function StaffPage() {
             socket?.emit('check-in', { id: bookingId }, (checkInRes: any) => {
               if (checkInRes.success) {
                 success(`Bắt đầu chơi! Bàn ${selectedTable.table_name} - Khách: ${customerName}`);
-                setTimeout(() => loadTables(), 500);
                 setShowPlayDirectModal(false);
                 setSelectedTable(null);
               } else {
@@ -247,7 +297,6 @@ export default function StaffPage() {
     socket?.emit('create-booking', data, (res: any) => {
       if (res.success) {
         success(`Đặt bàn thành công! Bàn ${selectedTable?.table_name}`);
-        setTimeout(() => loadTables(), 500);
         setShowBookingModal(false);
         setSelectedTable(null);
       } else {
@@ -449,7 +498,6 @@ export default function StaffPage() {
                             socket?.emit('check-in', { id: activeBooking.id }, (checkInRes: any) => {
                               if (checkInRes.success) {
                                 success(`Bắt đầu chơi! Bàn ${table.table_name}`);
-                                setTimeout(() => loadTables(), 500);
                               } else {
                                 error(checkInRes.error || 'Không thể bắt đầu chơi');
                               }
@@ -510,7 +558,7 @@ export default function StaffPage() {
           tableName={selectedTable.table_name}
           socket={socket}
           onOrderUpdate={() => {
-            setTimeout(() => loadTables(), 500);
+            // Không gọi loadTables, event từ server sẽ cập nhật
           }}
         />
       )}
