@@ -67,12 +67,14 @@ export default function UserModal({ isOpen, onClose, onSubmit, onResetPassword, 
       return;
     }
     
-    const submitData = { ...formData };
+    // Tạo object mới thay vì dùng delete
+    let submitData: any;
     if (!user) {
-      delete submitData.confirmPassword;
+      const { confirmPassword, ...rest } = formData;
+      submitData = rest;
     } else {
-      delete submitData.password;
-      delete submitData.confirmPassword;
+      const { password, confirmPassword, ...rest } = formData;
+      submitData = rest;
     }
     
     onSubmit(submitData);
@@ -255,11 +257,11 @@ export default function UserModal({ isOpen, onClose, onSubmit, onResetPassword, 
       ) : (
         // Form reset mật khẩu
         <div className="space-y-4">
-<div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md mb-4 border border-gray-200 dark:border-gray-700">
-  <p className="text-sm text-gray-700 dark:text-gray-300">
-    ⚠️ Đặt lại mật khẩu cho tài khoản: <strong>{user?.username}</strong>
-  </p>
-</div>
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md mb-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              ⚠️ Đặt lại mật khẩu cho tài khoản: <strong>{user?.username}</strong>
+            </p>
+          </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -298,7 +300,7 @@ export default function UserModal({ isOpen, onClose, onSubmit, onResetPassword, 
             <button
               type="button"
               onClick={handleResetPassword}
-                className="flex-1 px-4 py-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-md transition-all hover:scale-[1.02] active:scale-95"
+              className="flex-1 px-4 py-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-md transition-all hover:scale-[1.02] active:scale-95"
             >
               Đặt lại mật khẩu
             </button>
