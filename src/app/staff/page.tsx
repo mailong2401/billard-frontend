@@ -48,6 +48,12 @@ const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
 };
 
+// Helper an toàn để lấy số
+const safeNumber = (value: any): number => {
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
 interface TableWithBooking extends Table {
   booking_id?: number;
   booking_start_time?: string;
@@ -126,8 +132,8 @@ export default function StaffPage() {
               hours_played: hoursPlayed,
               customer_name: table.customer_name,
               customer_phone: table.customer_phone,
-              food_total: table.food_total || 0,
-              total_amount: currentAmount + (table.food_total || 0),
+              food_total: safeNumber(table.food_total || 0),
+              total_amount: currentAmount + safeNumber(table.food_total || 0),
             });
           }
         });
@@ -173,7 +179,7 @@ export default function StaffPage() {
             ...booking,
             current_amount: currentAmount,
             hours_played: hoursPlayed,
-            total_amount: currentAmount + (booking.food_total || 0),
+            total_amount: currentAmount + safeNumber(booking.food_total || 0),
           });
         });
         return newMap;
@@ -376,27 +382,27 @@ export default function StaffPage() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600 dark:text-gray-400">Thời gian đã chơi:</span>
                             <span className="font-medium text-black dark:text-white">
-                              {formatDuration(activeBooking.hours_played)}
+                              {formatDuration(safeNumber(activeBooking.hours_played))}
                             </span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600 dark:text-gray-400">Tiền bàn:</span>
                             <span className="font-medium text-black dark:text-white">
-                              {formatCurrency(activeBooking.current_amount)}
+                              {formatCurrency(safeNumber(activeBooking.current_amount))}
                             </span>
                           </div>
-                          {activeBooking.food_total > 0 && (
+                          {safeNumber(activeBooking.food_total) > 0 && (
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600 dark:text-gray-400">Tiền đồ ăn:</span>
                               <span className="font-medium text-black dark:text-white">
-                                {formatCurrency(activeBooking.food_total)}
+                                {formatCurrency(safeNumber(activeBooking.food_total))}
                               </span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
                             <span className="font-semibold text-black dark:text-white">Tổng cộng:</span>
                             <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                              {formatCurrency(activeBooking.total_amount)}
+                              {formatCurrency(safeNumber(activeBooking.total_amount))}
                             </span>
                           </div>
                         </>
@@ -459,7 +465,6 @@ export default function StaffPage() {
                       {isReserved && activeBooking && (
                         <button
                           onClick={() => {
-                            // Bắt đầu chơi từ booking đã đặt
                             socket?.emit('check-in', { id: activeBooking.id }, (checkInRes: any) => {
                               if (checkInRes.success) {
                                 success(`Bắt đầu chơi! Bàn ${table.table_name}`);
