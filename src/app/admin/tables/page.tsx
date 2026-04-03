@@ -64,48 +64,52 @@ export default function TablesPage() {
   }, []);
 
   // ================= LOAD TABLES =================
-  const loadTables = useCallback(() => {
-    socket?.emit('get-tables-full', {}, (res: any) => {
-      if (!isMounted.current) return;
+const loadTables = useCallback(() => {
+  socket?.emit('get-tables-full', {}, (res: any) => {
+    if (!isMounted.current) return;
 
-      if (res.success) {
-        setTables(res.data);
+    if (res.success) {
+      setTables(res.data);
 
-        const bookingsMap = new Map<number, any>();
+      const bookingsMap = new Map<number, any>();
 
-        res.data.forEach((table: any) => {
-          if (table.booking_id && table.start_time) {
-            // Parse start_time từ string (đã ở múi giờ VN)
-            const startTime = parseDateTime(table.start_time);
-            const now = new Date();
-            
-            // Tính số giờ đã chơi (chênh lệch milliseconds)
+      res.data.forEach((table: any) => {
+        // Lưu booking cho tất cả bàn có booking_id (cả reserved và occupied)
+        if (table.booking_id) {
+          const startTime = table.start_time ? parseDateTime(table.start_time) : null;
+          const now = new Date();
+          
+          let hoursPlayed = 0;
+          let currentAmount = 0;
+          
+          // Chỉ tính thời gian nếu bàn đang occupied (đã check-in)
+          if (table.status === 'occupied' && startTime) {
             const diffMs = now.getTime() - startTime.getTime();
-            const hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
-
-            const currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
-
-            bookingsMap.set(table.id, {
-              id: table.booking_id,
-              start_time: table.start_time,
-              current_amount: currentAmount,
-              hours_played: hoursPlayed,
-              customer_name: table.customer_name,
-              customer_phone: table.customer_phone,
-              food_total: toNumber(table.food_total || 0),
-              total_amount: currentAmount + toNumber(table.food_total || 0),
-            });
+            hoursPlayed = Math.max(0, diffMs / (1000 * 60 * 60));
+            currentAmount = Math.ceil(hoursPlayed) * table.price_per_hour;
           }
-        });
+          
+          bookingsMap.set(table.id, {
+            id: table.booking_id,
+            start_time: table.start_time,
+            current_amount: currentAmount,
+            hours_played: hoursPlayed,
+            customer_name: table.customer_name,
+            customer_phone: table.customer_phone,
+            food_total: toNumber(table.food_total || 0),
+            total_amount: currentAmount + toNumber(table.food_total || 0),
+          });
+        }
+      });
 
-        setActiveBookings(bookingsMap);
-      } else {
-        error(res.error);
-      }
+      setActiveBookings(bookingsMap);
+    } else {
+      error(res.error);
+    }
 
-      setLoading(false);
-    });
-  }, [socket, error]);
+    setLoading(false);
+  });
+}, [socket, error]);
 
   // ================= INIT =================
   useEffect(() => {
@@ -168,25 +172,65 @@ export default function TablesPage() {
 
   // ================= ACTIONS =================
   const handlePlay = useCallback((table: Table, bookingId: number) => {
-    socket?.emit('get-bookings', {
-      filters: { table_id: table.id, status: 'confirmed' }
-    }, (res: any) => {
-      if (res.success && res.data.length > 0) {
-        const booking = res.data[0];
-
-        socket?.emit('check-in', { id: booking.id }, (checkInRes: any) => {
-          if (checkInRes.success) {
-            success(`Bắt đầu chơi! Bàn ${table.table_name} - Khách: ${booking.customer_name}`);
-            setTimeout(() => loadTables(), 500);
-          } else {
-            error(checkInRes.error);
-          }
-        });
+  // Nếu có bookingId từ activeBooking (dành cho bàn reserved đã có booking)
+  if (bookingId && bookingId > 0) {
+    socket?.emit('check-in', { id: bookingId }, (checkInRes: any) => {
+      if (checkInRes.success) {
+        success(`Bắt đầu chơi! Bàn ${table.table_name}`);
+        setTimeout(() => loadTables(), 500);
       } else {
-        error('Không tìm thấy booking cho bàn này');
+        error(checkInRes.error || 'Không thể bắt đầu chơi');
       }
     });
-  }, [socket, success, error, loadTables]);
+    return;
+  }
+  
+  // Nếu không có bookingId, tìm booking theo table_id
+  socket?.emit('get-bookings', {
+    filters: { table_id: table.id }
+  }, (res: any) => {
+    if (res.success && res.data.length > 0) {
+      // Tìm booking có status 'confirmed' (đã xác nhận) hoặc 'pending'
+      const booking = res.data.find((b: any) => 
+        b.status === 'confirmed' || b.status === 'pending'
+      );
+      
+      if (booking) {
+        // Nếu booking đang ở status 'pending', cập nhật lên 'confirmed' trước
+        if (booking.status === 'pending') {
+          socket?.emit('update-booking', { id: booking.id, status: 'confirmed' }, (updateRes: any) => {
+            if (updateRes.success) {
+              socket?.emit('check-in', { id: booking.id }, (checkInRes: any) => {
+                if (checkInRes.success) {
+                  success(`Bắt đầu chơi! Bàn ${table.table_name} - Khách: ${booking.customer_name}`);
+                  setTimeout(() => loadTables(), 500);
+                } else {
+                  error(checkInRes.error || 'Không thể bắt đầu chơi');
+                }
+              });
+            } else {
+              error('Không thể xác nhận đặt bàn');
+            }
+          });
+        } else {
+          // Booking đã confirmed, check-in luôn
+          socket?.emit('check-in', { id: booking.id }, (checkInRes: any) => {
+            if (checkInRes.success) {
+              success(`Bắt đầu chơi! Bàn ${table.table_name} - Khách: ${booking.customer_name}`);
+              setTimeout(() => loadTables(), 500);
+            } else {
+              error(checkInRes.error || 'Không thể bắt đầu chơi');
+            }
+          });
+        }
+      } else {
+        error('Không tìm thấy booking hợp lệ cho bàn này');
+      }
+    } else {
+      error('Không tìm thấy booking cho bàn này. Vui lòng đặt bàn trước khi bắt đầu.');
+    }
+  });
+}, [socket, success, error, loadTables]);
 
   const handleEnd = useCallback((table: Table, bookingId: number) => {
     const actualEndTime = getVietnamTime();

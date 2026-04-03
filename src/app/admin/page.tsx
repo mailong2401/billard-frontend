@@ -252,10 +252,12 @@ export default function AdminDashboard() {
   const occupiedTables = tables.filter(t => t.status === 'occupied').length;
   const todayBookings = bookings.length;
   const todayCompleted = bookings.filter(b => b.status === 'completed').length;
-  const todayRevenue = bookings
-    .filter(b => b.status === 'completed')
-    .reduce((sum, b) => sum + (b.total_amount || 0), 0);
-
+const todayRevenue = bookings
+  .filter(b => b.status === 'completed')
+  .reduce((sum, b) => {
+    const amount = Number(b.total_amount);
+    return sum + (isNaN(amount) ? 0 : amount);
+  }, 0);
   if (!isClient) {
     return (
       <div className="flex justify-center items-center h-64">

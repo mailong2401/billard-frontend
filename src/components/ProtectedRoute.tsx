@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'client')[];
+  allowedRoles?: ('admin' | 'client' | 'staff')[];
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -22,6 +22,8 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
         // Nếu user có role không được phép, chuyển về trang tương ứng
         if (user.role === 'admin') {
           router.push('/admin');
+        } else if (user.role === 'staff') {
+          router.push('/staff');
         } else {
           router.push('/client');
         }
@@ -32,7 +34,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white"></div>
       </div>
     );
   }

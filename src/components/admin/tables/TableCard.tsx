@@ -100,6 +100,16 @@ const TableCard = memo(function TableCard({
     setShowPlayDirectModal(false);
   };
 
+  // Xử lý Play cho bàn đã đặt (reserved)
+  const handlePlayReserved = () => {
+    if (activeBooking?.id) {
+      onPlay?.(table, activeBooking.id);
+    } else {
+      // Nếu không có activeBooking, gọi onPlay với bookingId = 0 để tìm
+      onPlay?.(table, 0);
+    }
+  };
+
   const tableAmount = currentAmount;
   const foodAmount = activeBooking?.food_total || 0;
   const totalCurrentAmount = tableAmount + foodAmount;
@@ -157,50 +167,76 @@ const TableCard = memo(function TableCard({
                 <span className="font-medium text-black dark:text-white">{table.location}</span>
               </div>
             )}
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Thời gian đã chơi:</span>
-              <span className="font-medium text-black dark:text-white">{durationText}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Thời gian bắt đầu:</span>
-              <span className="font-medium text-black dark:text-white">
-                {activeBooking ? formatStartTime(activeBooking.start_time) : "00:00"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Tiền bàn:</span>
-              <span className="text-sm font-medium text-black dark:text-white">
-                {formatCurrency(tableAmount)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Tiền đồ ăn/uống:</span>
-              <span className="text-sm font-medium text-black dark:text-white">
-                {foodAmount > 0 ? formatCurrency(foodAmount) : '0 ₫'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-sm font-semibold text-black dark:text-white">Tổng cộng:</span>
-              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                {formatCurrency(totalCurrentAmount)}
-              </span>
-            </div>
+            
+            {/* Chỉ hiển thị thông tin chơi khi bàn đang occupied */}
+            {isPlaying && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Thời gian đã chơi:</span>
+                  <span className="font-medium text-black dark:text-white">{durationText}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Thời gian bắt đầu:</span>
+                  <span className="font-medium text-black dark:text-white">
+                    {activeBooking ? formatStartTime(activeBooking.start_time) : "00:00"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Tiền bàn:</span>
+                  <span className="text-sm font-medium text-black dark:text-white">
+                    {formatCurrency(tableAmount)}
+                  </span>
+                </div>
+                {foodAmount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Tiền đồ ăn/uống:</span>
+                    <span className="text-sm font-medium text-black dark:text-white">
+                      {formatCurrency(foodAmount)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <span className="text-sm font-semibold text-black dark:text-white">Tổng cộng:</span>
+                  <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(totalCurrentAmount)}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* Hiển thị thông tin đặt bàn khi bàn reserved */}
+            {isReserved && activeBooking && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Khách hàng:</span>
+                  <span className="font-medium text-black dark:text-white">
+                    {activeBooking.customer_name || 'Chưa có'} - {activeBooking.customer_phone || 'Chưa có'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Thời gian đặt:</span>
+                  <span className="font-medium text-black dark:text-white">
+                    {formatStartTime(activeBooking.start_time)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Các nút chức năng */}
           <div className="flex space-x-2">
-            {/* Play ngay button */}
+            {/* Play ngay button - chỉ hiển thị khi bàn trống */}
             {isAvailable && onPlayDirect && (
               <button
                 onClick={() => setShowPlayDirectModal(true)}
-                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:scale-[1.02] active:scale-95"
+                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-all hover:scale-[1.02] active:scale-95"
               >
                 <BiPlay className="h-4 w-4" />
                 <span>Play ngay</span>
               </button>
             )}
 
-            {/* Đặt bàn */}
+            {/* Đặt bàn - chỉ hiển thị khi bàn trống */}
             {isAvailable && (
               <button
                 onClick={() => onBook(table)}
@@ -211,18 +247,18 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
-            {/* Play button (khi có reservation) */}
+            {/* Play button - hiển thị khi bàn đã được đặt (reserved) */}
             {isReserved && onPlay && (
               <button
-                onClick={() => onPlay(table, 0)}
-                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:scale-[1.02] active:scale-95"
+                onClick={handlePlayReserved}
+                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-all hover:scale-[1.02] active:scale-95"
               >
                 <BiPlay className="h-4 w-4" />
-                <span>Play</span>
+                <span>Bắt đầu</span>
               </button>
             )}
 
-            {/* Gọi đồ */}
+            {/* Gọi đồ - hiển thị khi bàn đang chơi */}
             {isPlaying && onOrder && activeBooking && (
               <button
                 onClick={() => onOrder(table, activeBooking.id)}
@@ -233,7 +269,7 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
-            {/* Kết thúc */}
+            {/* Kết thúc - hiển thị khi bàn đang chơi */}
             {isPlaying && onEnd && activeBooking && (
               <button
                 onClick={() => onEnd(table, activeBooking.id)}
@@ -244,8 +280,8 @@ const TableCard = memo(function TableCard({
               </button>
             )}
 
-            {/* Sửa và Xóa */}
-            {!isPlaying && (
+            {/* Sửa và Xóa - chỉ hiển thị khi bàn không đang chơi */}
+            {!isPlaying && !isReserved && (
               <>
                 <button
                   onClick={() => onEdit(table)}
